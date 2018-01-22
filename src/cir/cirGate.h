@@ -47,14 +47,15 @@ private:
 class CirGate
 {
 public:
-   CirGate(string t = "", string s = "", unsigned l = 0, unsigned v = 0)
-      : _typeStr(t), _symbol(s), _lineNo(l), _var(v), _ref(0), _value(0) {}
+   CirGate(unsigned l = 0, unsigned v = 0)
+      : _lineNo(l), _var(v), _ref(0), _value(0) {}
    virtual ~CirGate() {}
 
    // Basic access methods
-   string   getTypeStr()   const { return _typeStr;       }
-   string   typeStr()      const { return _typeStr;       }
-   string   symbol()       const { return _symbol;        }
+   virtual string   getTypeStr()   const = 0;
+   virtual string   typeStr()      const = 0;
+   virtual string   symbol()       const = 0;
+
    unsigned getLineNo()    const { return _lineNo;        }
    unsigned lineNo()       const { return _lineNo;        }
    unsigned var()          const { return _var;           }
@@ -80,8 +81,6 @@ public:
    virtual bool isUndef()    const = 0;
 
    // Basic setting methods
-   void setTypeStr(string s)            { _typeStr = s;                       }
-   void setSymbol(string s)             { _symbol = s;                        }
    void setLineNo(unsigned l)           { _lineNo = l;                        }
    void setVar(unsigned v)              { _var = v;                           }
    void setRef(unsigned r)              { _ref = r;                           }
@@ -101,8 +100,6 @@ public:
    void rec_rptFanout(CirGate*, bool, int, int) const;
    
 private:
-   string           _typeStr;
-   string           _symbol;
    unsigned         _lineNo;
    unsigned         _var;
    unsigned         _ref;
@@ -111,7 +108,7 @@ protected:
    CirGateV         _fanin0;
    CirGateV         _fanin1;
    vector<CirGateV> _fanouts;
-   size_t           _value; // simulation value
+   size_t           _value;   // simulation value
 };
 
 
@@ -119,20 +116,26 @@ class CirPiGate : public CirGate
 {
 public:
    CirPiGate(unsigned l = 0, unsigned v = 0)
-      : CirGate("PI", "", l, v) {}
+      : CirGate(l, v) {}
    ~CirPiGate() {}
 
-   virtual bool isAig()      const { return false; }
-   virtual bool isFloating() const { return false; }
-   virtual bool isUndef()    const { return false; }
+   virtual string   getTypeStr()   const { return "PI";    }
+   virtual string   typeStr()      const { return "PI";    }
+   virtual string   symbol()       const { return _symbol; }
+   virtual bool     isAig()        const { return false;   }
+   virtual bool     isFloating()   const { return false;   }
+   virtual bool     isUndef()      const { return false;   }
 
    virtual void printGate() const {
       cout << "PI  " << var();
-      if (symbol() != "") cout << " (" << symbol() << ")";
+      if (_symbol != "") cout << " (" << _symbol << ")";
       cout << endl;
    }
 
+   void setSymbol(const string& s) { _symbol = s; }
+
 private:
+   string _symbol;
 };
 
 
@@ -140,22 +143,28 @@ class CirPoGate : public CirGate
 {
 public:
    CirPoGate(unsigned l = 0, unsigned v = 0)
-      : CirGate("PO", "", l, v) {}
+      : CirGate(l, v) {}
    ~CirPoGate() {}
 
-   virtual bool isAig()      const { return false;          }
-   virtual bool isFloating() const { return _fanin0.null(); }
-   virtual bool isUndef()    const { return false;          }
+   virtual string   getTypeStr()   const { return "PO";           }
+   virtual string   typeStr()      const { return "PO";           }
+   virtual string   symbol()       const { return _symbol;        }
+   virtual bool     isAig()        const { return false;          }
+   virtual bool     isFloating()   const { return _fanin0.null(); }
+   virtual bool     isUndef()      const { return false;          }
 
    virtual void printGate() const {
       cout << "PO  " << var() << " "
            << (_fanin0.gate()->isUndef() ? "*" : "") << (_fanin0.isInv() ? "!" : "") 
            << _fanin0.gate()->var();
-      if (symbol() != "") cout << " (" << symbol() << ")";
+      if (_symbol != "") cout << " (" << _symbol << ")";
       cout << endl;
    }
    
+   void setSymbol(const string& s) { _symbol = s; }
+
 private:
+   string _symbol;
 };
 
 
@@ -163,17 +172,20 @@ class CirAigGate : public CirGate
 {
 public:
    CirAigGate(unsigned l = 0, unsigned v = 0)
-      : CirGate("AIG", "", l, v) {}
+      : CirGate(l, v) {}
    ~CirAigGate() {}
+
+   virtual string   getTypeStr()   const { return isUndef() ? "UNDEF" : "AIG"; }
+   virtual string   typeStr()      const { return isUndef() ? "UNDEF" : "AIG"; }
+   virtual string   symbol()       const { return "";                          }
 
    virtual bool isAig()      const { return true; }
    virtual bool isFloating() const { 
       if (isUndef()) return false;
       return _fanin0.gate()->isUndef() || _fanin1.gate()->isUndef();
    }
-   virtual bool isUndef()   const { return _fanin0.null() || _fanin1.null(); }
-
-   virtual void printGate() const {
+   virtual bool isUndef()    const { return _fanin0.null() || _fanin1.null(); }
+   virtual void printGate()  const {
       assert(!isUndef());
       cout << "AIG " << var() << " "
            << (_fanin0.gate()->isUndef() ? "*" : "") << (_fanin0.isInv() ? "!" : "") 
@@ -190,12 +202,16 @@ class CirConstGate : public CirGate
 {
 public:
    CirConstGate()
-      : CirGate("CONST", "", 0, 0) {}
+      : CirGate(0, 0) {}
    ~CirConstGate() {}
 
-   virtual bool isAig()      const { return false; }
-   virtual bool isFloating() const { return false; }
-   virtual bool isUndef()    const { return false; }
+   virtual string   getTypeStr()   const { return "CONST"; }
+   virtual string   typeStr()      const { return "CONST"; }
+   virtual string   symbol()       const { return "";      }
+
+   virtual bool     isAig()        const { return false;   }
+   virtual bool     isFloating()   const { return false;   }
+   virtual bool     isUndef()      const { return false;   }
 
    virtual void printGate() const {
       cout << "CONST0" << endl;

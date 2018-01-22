@@ -171,9 +171,9 @@ CirMgr::readCircuit(const string& fileName)
 
    // Build Lists
    buildDfsList();
-   // buildFloatingList();
-   // buildUnuseList();
-   // buildUndefList();
+   buildFloatingList();
+   buildUnusedList();
+   buildUndefList();
    countAig();
 
    return true;
@@ -194,6 +194,20 @@ Circuit Statistics
 void
 CirMgr::printSummary() const
 {
+   static int frontWidth = 7;
+   static int backWidth  = 9;
+   cout << "Circuit Statistics\n";
+   cout << "==================\n";
+   cout << setw(frontWidth) << left  << "  PI"
+        << setw(backWidth)  << right << _nPI  << endl;
+   cout << setw(frontWidth) << left  << "  PO"
+        << setw(backWidth)  << right << _nPO  << endl;
+   cout << setw(frontWidth) << left  << "  AIG"
+        << setw(backWidth)  << right << _nAIG << endl;
+   cout << "------------------\n";
+   cout << setw(frontWidth) << left  << "  Total"
+        << setw(backWidth)  << right << (_nPI + _nPO + _nAIG) 
+        << endl;
 }
 
 void
@@ -226,7 +240,21 @@ CirMgr::printPOs() const
 
 void
 CirMgr::printFloatGates() const
-{
+{ 
+   // Print floating gates, if any
+   if (!_vFloatingList.empty()) {
+      cout << "Gates with floating fanin(s):";  
+      for (unsigned i = 0, n = _vFloatingList.size(); i < n; ++i)
+         cout << " " << _vFloatingList[i]->var();
+      cout << endl;
+   }
+   // Print unuse gates, if any
+   if (!_vUnusedList.empty()) {
+      cout << "Gates defined but not used  :";  
+      for (unsigned i = 0, n = _vUnusedList.size(); i < n; ++i)
+         cout << " " << _vUnusedList[i]->var();
+      cout << endl;
+   }
 }
 
 void
@@ -271,25 +299,42 @@ CirMgr::buildDfsList()
 void
 CirMgr::buildFloatingList()
 {
-   
+   _vFloatingList.clear();
+   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
+      if (_vAllGates[i])
+         if (_vAllGates[i]->isFloating())
+            _vFloatingList.push_back(_vAllGates[i]);
 }
 
 void
-CirMgr::buildUnuseList()
+CirMgr::buildUnusedList()
 {
-   
+   _vUnusedList.clear();
+   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
+      if (_vAllGates[i])
+         if (_vAllGates[i]->nFanouts() == 0) 
+            if (_vAllGates[i]->getTypeStr() == "AIG")
+               _vUnusedList.push_back(_vAllGates[i]);
 }
 
 void
 CirMgr::buildUndefList()
 {
-   
+   _vUndefList.clear();
+   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
+      if (_vAllGates[i])
+         if (_vAllGates[i]->isUndef())
+            _vUndefList.push_back(_vAllGates[i]);
 }
 
 void
 CirMgr::countAig()
 {
-   
+   _nAIG = 0;
+   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
+      if (_vAllGates[i])
+         if (_vAllGates[i]->getTypeStr() == "AIG")
+            ++_nAIG;
 }
 
 

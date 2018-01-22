@@ -55,7 +55,7 @@ public:
    // Member functions about gate lists
    void buildDfsList();
    void buildFloatingList();
-   void buildUnuseList();
+   void buildUnusedList();
    void buildUndefList();
    void countAig();
    void rec_dfs(CirGate*);
@@ -99,7 +99,7 @@ private:
    vector<CirGate*>  _vAllGates;     // List of all gates!! Can be access by idx!!
    vector<CirGate*>  _vDfsList;      // Depth-Fisrt Search List
    vector<CirGate*>  _vFloatingList; // List of all floating gates
-   vector<CirGate*>  _vUnuseList;    // List of all unused gates
+   vector<CirGate*>  _vUnusedList;    // List of all unused gates
    vector<CirGate*>  _vUndefList;    // List of all undefined gates
 
    ofstream           *_simLog;
