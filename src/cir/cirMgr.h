@@ -50,6 +50,7 @@ public:
    bool parseSymbol(ifstream&);
    bool parseComment(ifstream&);
    void preProcess();
+   void sortAllGateFanout();
    CirGate* queryGate(unsigned);
 
    // Member functions about gate lists

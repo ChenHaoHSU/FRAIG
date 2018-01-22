@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 #include "cirDef.h"
 #include "sat.h"
 
@@ -56,18 +57,20 @@ public:
    virtual string   typeStr()      const = 0;
    virtual string   symbol()       const = 0;
 
-   unsigned getLineNo()    const { return _lineNo;        }
-   unsigned lineNo()       const { return _lineNo;        }
-   unsigned var()          const { return _var;           }
-   unsigned ref()          const { return _ref;           }
-   size_t   value()        const { return _value;         }
+   unsigned getLineNo()    const { return _lineNo;               }
+   unsigned lineNo()       const { return _lineNo;               }
+   unsigned var()          const { return _var;                  }
+   unsigned ref()          const { return _ref;                  }
+   size_t   value()        const { return _value;                }
 
-   CirGateV fanin0()       const { return _fanin0;        }
-   CirGateV fanin1()       const { return _fanin1;        }
-   CirGate* fanin0_gate()  const { return _fanin0.gate(); }
-   CirGate* fanin1_gate()  const { return _fanin1.gate(); }
-   bool     fanin0_inv()   const { return _fanin0.isInv();}
-   bool     fanin1_inv()   const { return _fanin1.isInv();}
+   CirGateV fanin0()       const { return _fanin0;               }
+   CirGateV fanin1()       const { return _fanin1;               }
+   CirGate* fanin0_gate()  const { return _fanin0.gate();        }
+   CirGate* fanin1_gate()  const { return _fanin1.gate();        }
+   bool     fanin0_inv()   const { return _fanin0.isInv();       }
+   bool     fanin1_inv()   const { return _fanin1.isInv();       }
+   unsigned fanin0_var()   const { return _fanin0.gate()->var(); }
+   unsigned fanin1_var()   const { return _fanin1.gate()->var(); }
 
    CirGateV fanout(unsigned i)      const { assert(i < _fanouts.size()); return _fanouts[i];         }
    CirGate* fanout_gate(unsigned i) const { assert(i < _fanouts.size()); return _fanouts[i].gate();  }
@@ -83,7 +86,7 @@ public:
    // Basic setting methods
    void setLineNo(unsigned l)           { _lineNo = l;                        }
    void setVar(unsigned v)              { _var = v;                           }
-   void setRef(unsigned r)              { _ref = r;                           }
+   void setRef(unsigned r)        const { _ref = r; /* const method orz... */ }
    void setFanin0(const CirGateV& g)    { _fanin0 = g;                        } 
    void setFanin1(const CirGateV& g)    { _fanin1 = g;                        } 
    void addFanout(const CirGateV& g)    { _fanouts.push_back(g);              } 
@@ -91,18 +94,22 @@ public:
    void setFanin1(CirGate* g, size_t i) { _fanin1 = CirGateV(g, i);           } 
    void addFanout(CirGate* g, size_t i) { _fanouts.push_back(CirGateV(g, i)); } 
 
+   // Fanout sorting
+   static bool fanoutSort(const CirGateV& g1, const CirGateV& g2);
+   void sortFanout();
+
    // Printing functions
    virtual void printGate() const = 0;
-   void reportGate()                            const;
-   void reportFanin(int level)                  const;
-   void reportFanout(int level)                 const;
-   void rec_rptFanin(CirGate*, bool, int, int)  const;
-   void rec_rptFanout(CirGate*, bool, int, int) const;
+   void reportGate()                                  const;
+   void reportFanin(int level)                        const;
+   void reportFanout(int level)                       const;
+   void rec_rptFanin(const CirGate*, bool, int, int)  const;
+   void rec_rptFanout(const CirGate*, bool, int, int) const;
    
 private:
    unsigned         _lineNo;
    unsigned         _var;
-   unsigned         _ref;
+   mutable unsigned _ref;
 
 protected:
    CirGateV         _fanin0;

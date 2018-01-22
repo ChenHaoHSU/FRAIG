@@ -176,6 +176,8 @@ CirMgr::readCircuit(const string& fileName)
    buildUndefList();
    countAig();
 
+   sortAllGateFanout();
+   
    return true;
 }
 
@@ -265,6 +267,34 @@ CirMgr::printFECPairs() const
 void
 CirMgr::writeAag(ostream& outfile) const
 {
+   unsigned i, n;
+   // First line
+   outfile << "aag"   << " " << _maxIdx << " " << _nPI  << " " 
+           << _nLATCH << " " << _nPO    << " " << _nAIG << endl;
+   // PIs
+   for (i = 0; i < _nPI; ++i) 
+      outfile << LIT(pi(i)->var(), 0) << endl;
+   // POs
+   for (i = 0; i < _nPO; ++i) 
+      outfile << LIT(po(i)->fanin0_var(), po(i)->fanin0_inv()) 
+              << endl;
+   // AIGs
+   for (i = 0, n = _vDfsList.size(); i < n; ++i)
+      if (_vDfsList[i]->getTypeStr() == "AIG")
+         outfile << LIT(_vDfsList[i]->var(), 0)     << " "
+                 << LIT(_vDfsList[i]->fanin0_var(), 
+                        _vDfsList[i]->fanin0_inv()) << " "
+                 << LIT(_vDfsList[i]->fanin1_var(), 
+                        _vDfsList[i]->fanin1_inv()) << endl;
+   // Symbols
+   for (i = 0; i < _nPI; ++i)
+      if (pi(i)->symbol() != "")
+         outfile << "i" << i << " " << pi(i)->symbol() << endl;
+   for (i = 0; i < _nPO; ++i)
+      if (po(i)->symbol() != "")
+         outfile << "o" << i << " " << po(i)->symbol() << endl;
+   // Comments (optional)
+   outfile << "AAG output by Chen-Hao Hsu" << endl;
 }
 
 void
@@ -337,6 +367,13 @@ CirMgr::countAig()
             ++_nAIG;
 }
 
+void 
+CirMgr::sortAllGateFanout()
+{
+   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
+      if (_vAllGates[i])
+         _vAllGates[i]->sortFanout();
+}
 
 /**********************************************************/
 /*   class CirMgr member functions for freeing pointers   */
