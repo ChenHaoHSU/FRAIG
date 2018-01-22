@@ -177,7 +177,7 @@ CirMgr::readCircuit(const string& fileName)
    countAig();
 
    sortAllGateFanout();
-   
+
    return true;
 }
 
@@ -196,19 +196,19 @@ Circuit Statistics
 void
 CirMgr::printSummary() const
 {
-   static int frontWidth = 7;
-   static int backWidth  = 9;
+   static const int FRONTWIDTH = 7;
+   static const int BACKWIDTH  = 9;
    cout << "Circuit Statistics\n";
    cout << "==================\n";
-   cout << setw(frontWidth) << left  << "  PI"
-        << setw(backWidth)  << right << _nPI  << endl;
-   cout << setw(frontWidth) << left  << "  PO"
-        << setw(backWidth)  << right << _nPO  << endl;
-   cout << setw(frontWidth) << left  << "  AIG"
-        << setw(backWidth)  << right << _nAIG << endl;
+   cout << setw(FRONTWIDTH) << left  << "  PI"
+        << setw(BACKWIDTH)  << right << _nPI  << endl;
+   cout << setw(FRONTWIDTH) << left  << "  PO"
+        << setw(BACKWIDTH)  << right << _nPO  << endl;
+   cout << setw(FRONTWIDTH) << left  << "  AIG"
+        << setw(BACKWIDTH)  << right << _nAIG << endl;
    cout << "------------------\n";
-   cout << setw(frontWidth) << left  << "  Total"
-        << setw(backWidth)  << right << (_nPI + _nPO + _nAIG) 
+   cout << setw(FRONTWIDTH) << left  << "  Total"
+        << setw(BACKWIDTH)  << right << (_nPI + _nPO + _nAIG) 
         << endl;
 }
 

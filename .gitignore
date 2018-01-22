@@ -2,3 +2,5 @@
 *.out
 do*
 *.do
+pattern*
+*.pattern

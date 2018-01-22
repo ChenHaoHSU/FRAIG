@@ -31,9 +31,14 @@ class SatSolver;
 #define INV(x)     (x % 2)
 #define LIT(x, y)  ((x * 2) + y)
 
+#define CONST1     (0x1)
+#define ALL1       (~(0x1))
+
+#define BYTE_SIZE  (8)
+#define SIZET_SIZE (sizeof(size_t) * BYTE_SIZE)
+
 /**********************************************************/
 /*   Global Varibles                                      */
 /**********************************************************/
-
 
 #endif // CIR_DEF_H

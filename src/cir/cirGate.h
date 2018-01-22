@@ -100,12 +100,13 @@ public:
 
    // Printing functions
    virtual void printGate() const = 0;
-   void reportGate()                                  const;
-   void reportFanin(int level)                        const;
-   void reportFanout(int level)                       const;
-   void rec_rptFanin(const CirGate*, bool, int, int)  const;
-   void rec_rptFanout(const CirGate*, bool, int, int) const;
-   
+   void   reportGate()                                  const;
+   void   reportFanin(int level)                        const;
+   void   reportFanout(int level)                       const;
+   void   rec_rptFanin(const CirGate*, bool, int, int)  const;
+   void   rec_rptFanout(const CirGate*, bool, int, int) const;
+   string valueStr()                                    const;
+
 private:
    unsigned         _lineNo;
    unsigned         _var;

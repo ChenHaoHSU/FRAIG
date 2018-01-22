@@ -11,6 +11,7 @@
 #include <sstream>
 #include <stdarg.h>
 #include <cassert>
+#include <cstdlib>
 #include "cirGate.h"
 #include "cirMgr.h"
 #include "util.h"
@@ -30,6 +31,31 @@ extern unsigned globalRef;
 void
 CirGate::reportGate() const
 {
+	static const int WIDTH = 46;
+
+	// Information string
+	string infoStr = getTypeStr() + "(" + to_string(_var) + ")";
+	if (getTypeStr() == "PI") {
+		if (((CirPiGate*)this)->symbol() != "")
+			infoStr += "\"" + ((CirPiGate*)this)->symbol() + "\"";
+	}
+	if (getTypeStr() == "PO") {
+		if (((CirPoGate*)this)->symbol() != "")
+			infoStr += "\"" + ((CirPoGate*)this)->symbol() + "\"";
+	}
+	infoStr += ", line " + to_string(_lineNo);
+
+	// FEC string
+	string fecStr = "FECs:";
+
+	// Value string
+	string valStr = "Value: " + valueStr();
+
+	cout << "==================================================\n";
+	cout << "= " << setw(WIDTH) << left << infoStr       << " =\n";
+	cout << "= " << setw(WIDTH) << left << fecStr        << " =\n";
+	cout << "= " << setw(WIDTH) << left << valStr        << " =\n";
+	cout << "==================================================\n";
 }
 
 void
@@ -82,6 +108,25 @@ CirGate::rec_rptFanout(const CirGate* g, bool inv, int level, int nSpace) const
 		rec_rptFanout(g->fanout_gate(i), g->fanout_inv(i), level - 1, nSpace + 2);
 }
 
+string 
+CirGate::valueStr() const
+{
+	static const unsigned nBit = 32;
+	string str = "";
+	size_t value_copy = _value;
+	for (unsigned i = 0; i < nBit; ++i) {
+		if (!(i % 4) && i != 0) str = "_" + str;
+		if (value_copy & CONST1)
+			str = "1" + str;
+		else
+			str = "0" + str;
+	}
+	return str;
+}
+
+/**************************************/
+/*   class CirGate sorting functions  */
+/**************************************/
 bool 
 CirGate::fanoutSort(const CirGateV& g1, const CirGateV& g2)
 {

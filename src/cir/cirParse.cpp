@@ -94,6 +94,7 @@ CirMgr::parseAig(ifstream& fin)
 		g->setFanin1(f1, INV(f1_lit));
 		f0->addFanout(g, INV(f0_lit));
 		f1->addFanout(g, INV(f1_lit));
+		g->setLineNo(++lineNo);
 	}
 	return true;
 }
