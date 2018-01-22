@@ -5,3 +5,5 @@ do*
 pattern*
 *.pattern
 *.log
+*.swp
+*.out
