@@ -53,12 +53,12 @@ CirMgr::parsePi(ifstream& fin)
 {
 	CirPiGate* newPiGate = 0;
 	unsigned   lit       = 0;
-	_vPI.resize(_nPI);
+	// _vPI.resize(_nPI);
 	for (unsigned i = 0; i < _nPI; ++i) {
 		fin >> lit;
 		newPiGate = new CirPiGate(++lineNo, VAR(lit));
 		_vAllGates[VAR(lit)] = newPiGate;
-		_vPI[i] = newPiGate; 
+		// _vPI[i] = newPiGate;
 	}
 	return true;
 }
@@ -69,7 +69,7 @@ CirMgr::parsePo(ifstream& fin)
 	CirPoGate* newPoGate = 0;
 	CirGate*   fanin     = 0;
 	unsigned   lit       = 0;
-	_vPO.resize(_nPO);
+	// _vPO.resize(_nPO);
 	for (unsigned i = 0; i < _nPO; ++i) {
 		fin >> lit;
 		newPoGate = new CirPoGate(++lineNo, (_maxIdx + 1 + i));
@@ -77,7 +77,7 @@ CirMgr::parsePo(ifstream& fin)
 		newPoGate->setFanin0(fanin, INV(lit));
 		fanin->addFanout(newPoGate, INV(lit));
 		_vAllGates[_maxIdx + 1 + i] = newPoGate;
- 		_vPO[i] = newPoGate; 
+ 		// _vPO[i] = newPoGate; 
 	}
 	return true;
 }
@@ -113,13 +113,15 @@ CirMgr::parseSymbol(ifstream& fin)
 			str = str.substr(1);
 			myStr2Int(str, idx);
 			fin >> str;
-			_vPI[idx]->setSymbol(str);
+			// _vPI[idx]->setSymbol(str);
+			pi(idx)->setSymbol(str);
 		}
 		if (str[0] == 'o') {
 			str = str.substr(1);
 			myStr2Int(str, idx);
 			fin >> str;
-			_vPO[idx]->setSymbol(str);
+			// _vPO[idx]->setSymbol(str);
+			po(idx)->setSymbol(str);
 		}
 	}
 	return true;

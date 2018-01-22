@@ -171,9 +171,9 @@ CirMgr::readCircuit(const string& fileName)
 
    // Build Lists
    buildDfsList();
-   buildFloatingList();
-   buildUnuseList();
-   buildUndefList();
+   // buildFloatingList();
+   // buildUnuseList();
+   // buildUndefList();
    countAig();
 
    return true;
@@ -211,7 +211,7 @@ CirMgr::printPIs() const
 {
    cout << "PIs of the circuit:";
    for (unsigned i = 0; i < _nPI; ++i)
-      cout << " " << _vPI[i]->var();
+      cout << " " << pi(i)->var();
    cout << endl;
 }
 
@@ -220,7 +220,7 @@ CirMgr::printPOs() const
 {
    cout << "POs of the circuit:";
    for (unsigned i = 0; i < _nPO; ++i)
-      cout << " " << _vPO[i]->var();
+      cout << " " << po(i)->var();
    cout << endl;
 }
 
@@ -265,7 +265,7 @@ CirMgr::buildDfsList()
    ++globalRef;
    _vDfsList.clear();
    for (unsigned i = 0; i < _nPO; ++i)
-      rec_dfs(_vPO[i]);
+      rec_dfs(po(i));
 }
 
 void

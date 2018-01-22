@@ -19,6 +19,7 @@ using namespace std;
 // TODO: Feel free to define your own classes, variables, or functions.
 
 #include "cirDef.h"
+#include "cirGate.h"
 
 extern CirMgr *cirMgr;
 
@@ -30,7 +31,15 @@ public:
 
    // Access functions
    // return '0' if "gid" corresponds to an undefined gate.
-   CirGate* getGate(unsigned gid) const { return 0; }
+   CirGate* getGate(unsigned gid) const { return _vAllGates[gid]; }
+
+   // Basic access functions
+   unsigned   nPi()                 const { return _nPI; }
+   unsigned   nPo()                 const { return _nPO; }
+   CirPiGate* pi(const int& i)      const { assert(0 <= i && i < (int)_nPI); return (CirPiGate*)_vAllGates[i + 1];           }
+   CirPoGate* po(const int& i)      const { assert(0 <= i && i < (int)_nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
+   CirPiGate* pi(const unsigned& i) const { assert(0 <= i && i < _nPI);      return (CirPiGate*)_vAllGates[i + 1];           }
+   CirPoGate* po(const unsigned& i) const { assert(0 <= i && i < _nPO);      return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
 
    // Member functions about circuit construction
    bool readCircuit(const string&);
@@ -87,8 +96,6 @@ private:
    unsigned          _nAIG;          // A
 
    // Gate Lists
-   vector<CirGate*>  _vPI;           // List of all PIs
-   vector<CirGate*>  _vPO;           // List of all POs
    vector<CirGate*>  _vAllGates;     // List of all gates!! Can be access by idx!!
    vector<CirGate*>  _vDfsList;      // Depth-Fisrt Search List
    vector<CirGate*>  _vFloatingList; // List of all floating gates
