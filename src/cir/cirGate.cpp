@@ -81,7 +81,7 @@ CirGate::rec_rptFanin(const CirGate* g, bool inv, int level, int nSpace) const
 	if (level < 0) return;
 	for (int i = 0; i < nSpace; ++i) cout << ' ';
 	cout << (inv ? "!" : "") << g->getTypeStr() << " " << g->var();
-	if (g->ref() == globalRef) {
+	if (g->ref() == globalRef && level > 0) {
 		cout << " (*)" << endl;
 		return;
 	}
@@ -98,7 +98,7 @@ CirGate::rec_rptFanout(const CirGate* g, bool inv, int level, int nSpace) const
 	if (level < 0) return;
 	for (int i = 0; i < nSpace; ++i) cout << ' ';
 	cout << (inv ? "!" : "") << g->getTypeStr() << " " << g->var();
-	if (g->ref() == globalRef) {
+	if (g->ref() == globalRef && level > 0) {
 		cout << " (*)" << endl;
 		return;
 	}
@@ -137,4 +137,15 @@ void
 CirGate::sortFanout() 
 { 
    sort(_fanouts.begin(), _fanouts.end(), fanoutSort); 
+}
+
+void 
+CirGate::rmFanout(CirGate* g)
+{
+	for (unsigned i = 0; i < _fanouts.size(); ++i) {
+		if (_fanouts[i].gate() == g) {
+			_fanouts[i] = _fanouts.back();
+			_fanouts.pop_back();
+		}
+	}
 }

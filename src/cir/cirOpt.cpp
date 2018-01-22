@@ -19,6 +19,7 @@ using namespace std;
 /*******************************/
 /*   Global variable and enum  */
 /*******************************/
+extern unsigned globalRef;
 
 /**************************************/
 /*   Static varaibles and functions   */
@@ -33,6 +34,39 @@ using namespace std;
 void
 CirMgr::sweep()
 {
+	// Mark all gates in DFS List
+	++globalRef;
+	for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i)
+		_vDfsList[i]->setRef(globalRef);
+
+	CirGate* g = 0;
+	for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i) {
+		if (_vAllGates[i]) {
+			g = _vAllGates[i];
+			if (g->ref() != globalRef) {
+				if (g->getTypeStr() == "AIG") {
+            	g->fanin0_gate()->rmFanout(g);
+            	g->fanin1_gate()->rmFanout(g);
+	            cout << "Sweeping: AIG(" << g->var() << ") removed...\n";
+	            _vGarbageList.push_back(_vAllGates[i]);
+	            _vAllGates[i] = 0;
+				}
+				else if (g->getTypeStr() == "UNDEF") {
+	            cout << "Sweeping: UNDEF(" << g->var() << ") removed...\n";
+	            _vGarbageList.push_back(_vAllGates[i]);
+	            _vAllGates[i] = 0;
+	         }
+	         else {}
+	      }
+	   }
+	}
+
+   buildFloatingList();
+   buildUnusedList();
+   buildUndefList();
+   countAig();
+
+   sortAllGateFanout();
 }
 
 // Recursively simplifying from POs;

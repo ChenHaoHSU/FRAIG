@@ -41,8 +41,9 @@ CirMgr::parseAag(ifstream& fin)
 void  
 CirMgr::preProcess()
 {
-	// Resize _vAllGates
+	// Resize _vAllGates, and reserve _vGarbageList
 	_vAllGates.resize(1 + _maxIdx + _nPO, 0);
+	_vGarbageList.reserve(_vAllGates.size());
 	// Create CONST gate
 	CirConstGate* newGate = new CirConstGate;
 	_vAllGates[0] = newGate;

@@ -97,13 +97,17 @@ private:
    unsigned          _nAIG;          // A
 
    // Gate Lists
-   vector<CirGate*>  _vAllGates;     // List of all gates!! Can be access by idx!!
-   vector<CirGate*>  _vDfsList;      // Depth-Fisrt Search List
-   vector<CirGate*>  _vFloatingList; // List of all floating gates
-   vector<CirGate*>  _vUnusedList;    // List of all unused gates
-   vector<CirGate*>  _vUndefList;    // List of all undefined gates
+   vector<CirGate*>  _vAllGates;       // List of all gates!! Can be access by idx!!
+   vector<CirGate*>  _vDfsList;        // Depth-Fisrt Search List
+   vector<CirGate*>  _vFloatingList;   // List of all floating gates
+   vector<CirGate*>  _vUnusedList;     // List of all unused gates
+   vector<CirGate*>  _vUndefList;      // List of all undefined gates
+   vector<CirGate*>  _vGarbageList;    // List of all removed gates
 
    ofstream           *_simLog;
+
+   // Helper functions
+   void removeGate(CirGate*);
 };
 
 #endif // CIR_MGR_H

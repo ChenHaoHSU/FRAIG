@@ -198,6 +198,7 @@ CirMgr::printSummary() const
 {
    static const int FRONTWIDTH = 7;
    static const int BACKWIDTH  = 9;
+   cout << endl;
    cout << "Circuit Statistics\n";
    cout << "==================\n";
    cout << setw(FRONTWIDTH) << left  << "  PI"
@@ -294,6 +295,7 @@ CirMgr::writeAag(ostream& outfile) const
       if (po(i)->symbol() != "")
          outfile << "o" << i << " " << po(i)->symbol() << endl;
    // Comments (optional)
+   outfile << "c" << endl;
    outfile << "AAG output by Chen-Hao Hsu" << endl;
 }
 
@@ -385,5 +387,10 @@ CirMgr::clear()
       if (_vAllGates[i])
          delete _vAllGates[i];
       _vAllGates[i] = 0;
+   }
+   for (unsigned i = 0, n = _vGarbageList.size(); i < n; ++i) {
+      if (_vGarbageList[i])
+         delete _vGarbageList[i];
+      _vGarbageList[i] = 0;
    }
 }

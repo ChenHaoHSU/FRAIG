@@ -107,6 +107,8 @@ public:
    void   rec_rptFanout(const CirGate*, bool, int, int) const;
    string valueStr()                                    const;
 
+   void rmFanout(CirGate*);
+
 private:
    unsigned         _lineNo;
    unsigned         _var;
