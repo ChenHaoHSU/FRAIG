@@ -99,15 +99,24 @@ CirMgr::optimize()
 		// Skip non-AIG gate
 		if (!_vDfsList[i]->isAig()) continue;
 
+		// Apply optimization (4 cases)
+		// Case1: One of fanins is const0
+		// Case2: One of fanins is const1
+		// Case3: Two fanins are the same (var) and in the same phase
+		// Case4: Two fanins are the same (var) but in inverting phase
+		// 
 		g = _vDfsList[i];
 		type = optType(g);
-		if (type == OPT_CONST0)          optConst0(g);
-		else if (type == OPT_CONST1)     optConst1(g);
-		else if (type == OPT_SAMEFANIN)  optSameFanin(g);
-		else if (type == OPT_INVFANIN)   optInvFanin(g);
-		else                             continue;
+		switch (type)
+		{
+			case OPT_CONST0:    optConst0(g);    break;
+			case OPT_CONST1:    optConst1(g);    break;
+			case OPT_SAMEFANIN: optSameFanin(g); break;
+			case OPT_INVFANIN:  optInvFanin(g);  break;
+			default: continue;
+		}
 
-		// Delete optimized-out gate
+		// Delete the optimized-out gate
       addGarbage(g);
       _vAllGates[g->var()] = 0;
 	}
@@ -118,8 +127,6 @@ CirMgr::optimize()
    buildUnusedList();
    buildUndefList();
    countAig();
-
-   sortAllGateFanout();
 }
 
 /***************************************************/
@@ -128,21 +135,26 @@ CirMgr::optimize()
 OptType 
 CirMgr::optType(CirGate* g) const
 {
-	if ( (g->fanin0_gate() == constGate() && !g->fanin0_inv())
-	  || (g->fanin1_gate() == constGate() && !g->fanin1_inv()) )
-		return OPT_CONST0;
-	
-	if ( (g->fanin0_gate() == constGate() && g->fanin0_inv())
-	  || (g->fanin1_gate() == constGate() && g->fanin1_inv()) )
-		return OPT_CONST1;
+	if ( g->fanin0_gate() == constGate() ) {
+		if ( !g->fanin0_inv() ) 
+			return OPT_CONST0;
+		else
+			return OPT_CONST1;
+	}
 
-	if ( (g->fanin0_gate() == g->fanin1_gate()) 
-	  && (g->fanin0_inv()  == g->fanin1_inv()) )
-		return OPT_SAMEFANIN;
+	if ( g->fanin1_gate() == constGate() ) {
+		if ( !g->fanin1_inv() ) 
+			return OPT_CONST0;
+		else
+			return OPT_CONST1;
+	}
 
-	if ( (g->fanin0_gate() == g->fanin1_gate()) 
-	  && (g->fanin0_inv()  != g->fanin1_inv()) )
-		return OPT_INVFANIN;
+	if ( g->fanin0_gate() == g->fanin1_gate() ) {
+		if ( g->fanin0_inv()  == g->fanin1_inv() )
+			return OPT_SAMEFANIN;
+		else 
+			return OPT_INVFANIN;
+	}
 
    return OPT_NONE;
 }

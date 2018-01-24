@@ -9,4 +9,4 @@ $REF -f $1 1> $REFLOG
 
 diff $MYLOG $REFLOG
 
-rm $MYLOG $REFLOG
+#rm $MYLOG $REFLOG

@@ -10,6 +10,7 @@
 #include "cirMgr.h"
 #include "cirGate.h"
 #include "sat.h"
+#include "myHashSet.h"
 #include "myHashMap.h"
 #include "util.h"
 
