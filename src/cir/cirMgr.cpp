@@ -271,7 +271,7 @@ CirMgr::writeAag(ostream& outfile) const
    unsigned i, n;
    // First line
    outfile << "aag"   << " " << _maxIdx << " " << _nPI  << " " 
-           << _nLATCH << " " << _nPO    << " " << _nAIG << endl;
+           << _nLATCH << " " << _nPO    << " " << _nDfsAIG << endl;
    // PIs
    for (i = 0; i < _nPI; ++i) 
       outfile << LIT(pi(i)->var(), 0) << endl;
@@ -281,7 +281,7 @@ CirMgr::writeAag(ostream& outfile) const
               << endl;
    // AIGs
    for (i = 0, n = _vDfsList.size(); i < n; ++i)
-      if (_vDfsList[i]->getTypeStr() == "AIG")
+      if (_vDfsList[i]->isAig())
          outfile << LIT(_vDfsList[i]->var(), 0)     << " "
                  << LIT(_vDfsList[i]->fanin0_var(), 
                         _vDfsList[i]->fanin0_inv()) << " "
@@ -317,11 +317,13 @@ CirMgr::rec_dfs(CirGate* g)
    rec_dfs(g->fanin0_gate());
    rec_dfs(g->fanin1_gate());
    _vDfsList.push_back(g);
+   if (g->isAig()) ++_nDfsAIG;
 }
 
 void
 CirMgr::buildDfsList()
 {
+   _nDfsAIG = 0;
    ++globalRef;
    _vDfsList.clear();
    for (unsigned i = 0; i < _nPO; ++i)
@@ -345,7 +347,7 @@ CirMgr::buildUnusedList()
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
       if (_vAllGates[i])
          if (_vAllGates[i]->nFanouts() == 0) 
-            if (_vAllGates[i]->getTypeStr() == "AIG")
+            if (_vAllGates[i]->isAig() || _vAllGates[i]->isPi())
                _vUnusedList.push_back(_vAllGates[i]);
 }
 
@@ -365,7 +367,7 @@ CirMgr::countAig()
    _nAIG = 0;
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
       if (_vAllGates[i])
-         if (_vAllGates[i]->getTypeStr() == "AIG")
+         if (_vAllGates[i]->isAig())
             ++_nAIG;
 }
 

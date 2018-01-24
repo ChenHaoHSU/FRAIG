@@ -35,11 +35,11 @@ CirGate::reportGate() const
 
 	// Information string
 	string infoStr = getTypeStr() + "(" + to_string(_var) + ")";
-	if (getTypeStr() == "PI") {
+	if (isPi()) {
 		if (((CirPiGate*)this)->symbol() != "")
 			infoStr += "\"" + ((CirPiGate*)this)->symbol() + "\"";
 	}
-	if (getTypeStr() == "PO") {
+	if (isPo()) {
 		if (((CirPoGate*)this)->symbol() != "")
 			infoStr += "\"" + ((CirPoGate*)this)->symbol() + "\"";
 	}
@@ -86,7 +86,7 @@ CirGate::rec_rptFanin(const CirGate* g, bool inv, int level, int nSpace) const
 		return;
 	}
 	cout << endl;
-	if (level > 0 && g->getTypeStr() == "AIG") g->setRef(globalRef);
+	if (level > 0 && g->isAig()) g->setRef(globalRef);
 	rec_rptFanin(g->fanin0_gate(), g->fanin0_inv(), level - 1, nSpace + 2);
 	rec_rptFanin(g->fanin1_gate(), g->fanin1_inv(), level - 1, nSpace + 2);
 }
@@ -103,7 +103,7 @@ CirGate::rec_rptFanout(const CirGate* g, bool inv, int level, int nSpace) const
 		return;
 	}
 	cout << endl;
-	if (level > 0 && g->getTypeStr() == "AIG") g->setRef(globalRef);
+	if (level > 0 && g->isAig()) g->setRef(globalRef);
 	for (unsigned i = 0, n = g->nFanouts(); i < n; ++i) 
 		rec_rptFanout(g->fanout_gate(i), g->fanout_inv(i), level - 1, nSpace + 2);
 }

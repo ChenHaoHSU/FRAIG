@@ -95,6 +95,7 @@ private:
    unsigned          _nLATCH;        // L 
    unsigned          _nPO;           // O
    unsigned          _nAIG;          // A
+   unsigned          _nDfsAIG;       // number of Aig in dfs list
 
    // Gate Lists
    vector<CirGate*>  _vAllGates;       // List of all gates!! Can be access by idx!!
@@ -107,7 +108,6 @@ private:
    ofstream           *_simLog;
 
    // Helper functions
-   void removeGate(CirGate*);
 };
 
 #endif // CIR_MGR_H

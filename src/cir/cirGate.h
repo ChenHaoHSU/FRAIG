@@ -79,9 +79,12 @@ public:
    unsigned nFanouts()     const { return _fanouts.size();  }
    unsigned bFanoutEmpty() const { return _fanouts.empty(); }
 
+   virtual bool isPi()       const = 0;
+   virtual bool isPo()       const = 0;
    virtual bool isAig()      const = 0;
-   virtual bool isFloating() const = 0;
+   virtual bool isConst()    const = 0;
    virtual bool isUndef()    const = 0;
+   virtual bool isFloating() const = 0;
 
    // Basic setting methods
    void setLineNo(unsigned l)           { _lineNo = l;                        }
@@ -132,9 +135,12 @@ public:
    virtual string   getTypeStr()   const { return "PI";    }
    virtual string   typeStr()      const { return "PI";    }
    virtual string   symbol()       const { return _symbol; }
+   virtual bool     isPi()         const { return true;    }
+   virtual bool     isPo()         const { return false;   }
    virtual bool     isAig()        const { return false;   }
-   virtual bool     isFloating()   const { return false;   }
+   virtual bool     isConst()      const { return false;   }
    virtual bool     isUndef()      const { return false;   }
+   virtual bool     isFloating()   const { return false;   }
 
    virtual void printGate() const {
       cout << "PI  " << var();
@@ -159,9 +165,12 @@ public:
    virtual string   getTypeStr()   const { return "PO";           }
    virtual string   typeStr()      const { return "PO";           }
    virtual string   symbol()       const { return _symbol;        }
+   virtual bool     isPi()         const { return false;          }
+   virtual bool     isPo()         const { return true;           }
    virtual bool     isAig()        const { return false;          }
-   virtual bool     isFloating()   const { return _fanin0.null(); }
+   virtual bool     isConst()      const { return false;          }
    virtual bool     isUndef()      const { return false;          }
+   virtual bool     isFloating()   const { return _fanin0.null(); }
 
    virtual void printGate() const {
       cout << "PO  " << var() << " "
@@ -189,12 +198,15 @@ public:
    virtual string   typeStr()      const { return isUndef() ? "UNDEF" : "AIG"; }
    virtual string   symbol()       const { return "";                          }
 
-   virtual bool isAig()      const { return true; }
+   virtual bool isPo()       const { return false;                            }
+   virtual bool isPi()       const { return false;                            }
+   virtual bool isAig()      const { return !isUndef();                       }
+   virtual bool isConst()    const { return false;                            }
+   virtual bool isUndef()    const { return _fanin0.null() || _fanin1.null(); }
    virtual bool isFloating() const { 
       if (isUndef()) return false;
       return _fanin0.gate()->isUndef() || _fanin1.gate()->isUndef();
    }
-   virtual bool isUndef()    const { return _fanin0.null() || _fanin1.null(); }
    virtual void printGate()  const {
       assert(!isUndef());
       cout << "AIG " << var() << " "
@@ -219,9 +231,12 @@ public:
    virtual string   typeStr()      const { return "CONST"; }
    virtual string   symbol()       const { return "";      }
 
+   virtual bool     isPo()         const { return false;   }
+   virtual bool     isPi()         const { return false;   }
    virtual bool     isAig()        const { return false;   }
-   virtual bool     isFloating()   const { return false;   }
+   virtual bool     isConst()      const { return true;    }
    virtual bool     isUndef()      const { return false;   }
+   virtual bool     isFloating()   const { return false;   }
 
    virtual void printGate() const {
       cout << "CONST0" << endl;

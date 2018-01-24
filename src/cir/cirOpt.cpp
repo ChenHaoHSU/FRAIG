@@ -39,19 +39,20 @@ CirMgr::sweep()
 	for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i)
 		_vDfsList[i]->setRef(globalRef);
 
+	// Sweeping
 	CirGate* g = 0;
 	for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i) {
 		if (_vAllGates[i]) {
 			g = _vAllGates[i];
 			if (g->ref() != globalRef) {
-				if (g->getTypeStr() == "AIG") {
+				if (g->isAig()) {
             	g->fanin0_gate()->rmFanout(g);
             	g->fanin1_gate()->rmFanout(g);
 	            cout << "Sweeping: AIG(" << g->var() << ") removed...\n";
 	            _vGarbageList.push_back(_vAllGates[i]);
 	            _vAllGates[i] = 0;
 				}
-				else if (g->getTypeStr() == "UNDEF") {
+				else if (g->isUndef()) {
 	            cout << "Sweeping: UNDEF(" << g->var() << ") removed...\n";
 	            _vGarbageList.push_back(_vAllGates[i]);
 	            _vAllGates[i] = 0;
@@ -61,6 +62,7 @@ CirMgr::sweep()
 	   }
 	}
 
+	// Update Lists
    buildFloatingList();
    buildUnusedList();
    buildUndefList();
@@ -75,6 +77,21 @@ CirMgr::sweep()
 void
 CirMgr::optimize()
 {
+
+
+
+
+
+
+
+	// Update Lists
+   buildDfsList();
+   buildFloatingList();
+   buildUnusedList();
+   buildUndefList();
+   countAig();
+
+   sortAllGateFanout();
 }
 
 /***************************************************/
