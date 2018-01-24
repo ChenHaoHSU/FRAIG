@@ -7,3 +7,4 @@ pattern*
 *.log
 *.swp
 *.out
+*.o
