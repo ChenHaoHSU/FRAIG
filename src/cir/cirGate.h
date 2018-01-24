@@ -39,6 +39,7 @@ public:
   bool isInv() const { return (_gateV & NEG); }
   bool operator == (const CirGateV& i) const { return (gate() == i.gate() && isInv() == i.isInv()); }
   bool null() const { return _gateV == 0; }
+  void setGateV(CirGate*g, bool phase) { _gateV = size_t(g) + size_t(phase); }
 
 private:
   size_t _gateV;
@@ -99,7 +100,7 @@ public:
 
    // Fanout sorting
    static bool fanoutSort(const CirGateV& g1, const CirGateV& g2);
-   void sortFanout();
+   void        sortFanout();
 
    // Printing functions
    virtual void printGate() const = 0;
@@ -110,7 +111,10 @@ public:
    void   rec_rptFanout(const CirGate*, bool, int, int) const;
    string valueStr()                                    const;
 
-   void rmFanout(CirGate*);
+   // Fanin Fanout operation
+   bool replaceFanin(CirGate* newFanin, bool newInv, CirGate* oldFanin);
+   bool replaceFanout(CirGate* newFanin, bool newInv, CirGate* oldFanin);
+   bool rmFanout(CirGate*);
 
 private:
    unsigned         _lineNo;

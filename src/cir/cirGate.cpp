@@ -139,13 +139,44 @@ CirGate::sortFanout()
    sort(_fanouts.begin(), _fanouts.end(), fanoutSort); 
 }
 
-void 
+/*******************************************/
+/*   class CirGate Fanin Fanout operation  */
+/*******************************************/
+bool 
+CirGate::replaceFanin(CirGate* newFanin, bool newInv, CirGate* oldFanin)
+{
+	if (_fanin0.gate() == oldFanin) {
+		_fanin0.setGateV(newFanin, newInv);
+		return true;
+	}
+	if (_fanin1.gate() == oldFanin) {
+		_fanin1.setGateV(newFanin, newInv);
+		return true;
+	}
+	return false;
+}
+
+bool 
+CirGate::replaceFanout(CirGate* newFanin, bool newInv, CirGate* oldFanin)
+{
+	for (unsigned i = 0; i < _fanouts.size(); ++i) {
+		if (_fanouts[i].gate() == oldFanin) {
+			_fanouts[i].setGateV(newFanin, newInv);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool 
 CirGate::rmFanout(CirGate* g)
 {
 	for (unsigned i = 0; i < _fanouts.size(); ++i) {
 		if (_fanouts[i].gate() == g) {
 			_fanouts[i] = _fanouts.back();
 			_fanouts.pop_back();
+			return true;
 		}
 	}
+	return false;
 }

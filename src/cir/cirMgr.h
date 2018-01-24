@@ -40,6 +40,8 @@ public:
    CirPoGate* po(const int& i)      const { assert(0 <= i && i < (int)_nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
    CirPiGate* pi(const unsigned& i) const { assert(0 <= i && i < _nPI);      return (CirPiGate*)_vAllGates[i + 1];           }
    CirPoGate* po(const unsigned& i) const { assert(0 <= i && i < _nPO);      return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
+   CirGate*   constGate()           const { return _vAllGates[0]; } 
+
 
    // Member functions about circuit construction
    bool readCircuit(const string&);
@@ -64,6 +66,12 @@ public:
    // Member functions about circuit optimization
    void sweep();
    void optimize();
+   OptType optType(CirGate*) const;
+   void optConst0(CirGate*);
+   void optConst1(CirGate*);
+   void optSameFanin(CirGate*);
+   void optInvFanin(CirGate*);
+   void mergeGates(CirGate* liveGate, CirGate* deadGate, bool invMerged);
 
    // Member functions about simulation
    void randomSim();
@@ -86,6 +94,7 @@ public:
    void writeGate(ostream&, CirGate*) const;
 
    // Member functions about freeing pointers
+   void addGarbage(CirGate*);
    void clear();
 
 private:
@@ -105,7 +114,7 @@ private:
    vector<CirGate*>  _vUndefList;      // List of all undefined gates
    vector<CirGate*>  _vGarbageList;    // List of all removed gates
 
-   ofstream           *_simLog;
+   ofstream           *_simLog;        // Log file of Simulation result
 
    // Helper functions
 };

@@ -41,4 +41,18 @@ class SatSolver;
 /*   Global Varibles                                      */
 /**********************************************************/
 
+/**********************************************************/
+/*   Global enum                                          */
+/**********************************************************/
+enum OptType   // for optimization (4 cases)
+{
+	OPT_CONST0    = 0,
+	OPT_CONST1    = 1,
+	OPT_SAMEFANIN = 2,
+	OPT_INVFANIN  = 3,
+	OPT_NONE      = 4
+};
+
+
+
 #endif // CIR_DEF_H
