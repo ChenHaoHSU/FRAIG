@@ -31,8 +31,6 @@ extern unsigned globalRef;
 void
 CirGate::reportGate() const
 {
-	static const int WIDTH = 46;
-
 	// Information string
 	string infoStr = getTypeStr() + "(" + to_string(_var) + ")";
 	if (isPi()) {
@@ -51,11 +49,11 @@ CirGate::reportGate() const
 	// Value string
 	string valStr = "Value: " + valueStr();
 
-	cout << "==================================================\n";
-	cout << "= " << setw(WIDTH) << left << infoStr       << " =\n";
-	cout << "= " << setw(WIDTH) << left << fecStr        << " =\n";
-	cout << "= " << setw(WIDTH) << left << valStr        << " =\n";
-	cout << "==================================================\n";
+	cout << "================================================================================\n";
+	cout << "= " << infoStr << endl;
+	cout << "= " << "FECs:" << endl;
+	cout << "= " << "Value: " << valueStr() << endl;
+	cout << "================================================================================\n";
 }
 
 void
@@ -111,15 +109,17 @@ CirGate::rec_rptFanout(const CirGate* g, bool inv, int level, int nSpace) const
 string 
 CirGate::valueStr() const
 {
-	static const unsigned nBit = 32;
+	static const unsigned nBit     = 64;
+	static const unsigned nCluster = 8;
 	string str = "";
 	size_t value_copy = _value;
 	for (unsigned i = 0; i < nBit; ++i) {
-		if (!(i % 4) && i != 0) str = "_" + str;
+		if (!(i % nCluster) && i != 0) str = "_" + str;
 		if (value_copy & CONST1)
 			str = "1" + str;
 		else
 			str = "0" + str;
+		value_copy >>= 1;
 	}
 	return str;
 }

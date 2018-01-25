@@ -23,6 +23,16 @@ using namespace std;
 
 extern CirMgr *cirMgr;
 
+enum OptType   // for optimization (4 cases)
+{
+   OPT_CONST0    = 0,
+   OPT_CONST1    = 1,
+   OPT_SAMEFANIN = 2,
+   OPT_INVFANIN  = 3,
+   OPT_NONE      = 4
+};
+
+
 class CirMgr
 {
 public:
@@ -33,18 +43,8 @@ public:
    // return '0' if "gid" corresponds to an undefined gate.
    CirGate* getGate(unsigned gid) const { return _vAllGates[gid]; }
 
-   // Basic access functions
-   unsigned   nPi()                 const { return _nPI; }
-   unsigned   nPo()                 const { return _nPO; }
-   CirPiGate* pi(const int& i)      const { assert(0 <= i && i < (int)_nPI); return (CirPiGate*)_vPi[i];                     }
-   CirPoGate* po(const int& i)      const { assert(0 <= i && i < (int)_nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
-   CirPiGate* pi(const unsigned& i) const { assert(0 <= i && i < _nPI);      return (CirPiGate*)_vPi[i];                     }
-   CirPoGate* po(const unsigned& i) const { assert(0 <= i && i < _nPO);      return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
-   CirGate*   constGate()           const { return _vAllGates[0]; } 
-
    // Member functions about circuit construction
    bool readCircuit(const string&);
-
 
    // Member functions about circuit optimization
    void sweep();
@@ -94,6 +94,14 @@ private:
 
    ofstream           *_simLog;        // Log file of Simulation result
 
+   // Basic access functions
+   unsigned   nPi()                 const { return _nPI; }
+   unsigned   nPo()                 const { return _nPO; }
+   CirPiGate* pi(const int& i)      const { assert(0 <= i && i < (int)_nPI); return (CirPiGate*)_vPi[i];                     }
+   CirPoGate* po(const int& i)      const { assert(0 <= i && i < (int)_nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
+   CirPiGate* pi(const unsigned& i) const { assert(0 <= i && i < _nPI);      return (CirPiGate*)_vPi[i];                     }
+   CirPoGate* po(const unsigned& i) const { assert(0 <= i && i < _nPO);      return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
+   CirGate*   constGate()           const { return _vAllGates[0]; } 
 
    // Private functions for parsing AAG file
    bool parseAag(ifstream&);
@@ -120,7 +128,7 @@ private:
    void optSameFanin(CirGate*);
    void optInvFanin(CirGate*);
 
-   // Common functions
+   // Private common functions
    void sortAllGateFanout();
    void mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged);
 
