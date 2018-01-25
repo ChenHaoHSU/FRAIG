@@ -31,29 +31,29 @@ extern unsigned globalRef;
 void
 CirGate::reportGate() const
 {
-	// Information string
-	string infoStr = getTypeStr() + "(" + to_string(_var) + ")";
-	if (isPi()) {
-		if (((CirPiGate*)this)->symbol() != "")
-			infoStr += "\"" + ((CirPiGate*)this)->symbol() + "\"";
-	}
-	if (isPo()) {
-		if (((CirPoGate*)this)->symbol() != "")
-			infoStr += "\"" + ((CirPoGate*)this)->symbol() + "\"";
-	}
-	infoStr += ", line " + to_string(_lineNo);
+   // Information string
+   string infoStr = getTypeStr() + "(" + to_string(_var) + ")";
+   if (isPi()) {
+      if (((CirPiGate*)this)->symbol() != "")
+         infoStr += "\"" + ((CirPiGate*)this)->symbol() + "\"";
+   }
+   if (isPo()) {
+      if (((CirPoGate*)this)->symbol() != "")
+         infoStr += "\"" + ((CirPoGate*)this)->symbol() + "\"";
+   }
+   infoStr += ", line " + to_string(_lineNo);
 
-	// FEC string
-	string fecStr = "FECs:";
+   // FEC string
+   string fecStr = "FECs:";
 
-	// Value string
-	string valStr = "Value: " + valueStr();
+   // Value string
+   string valStr = "Value: " + valueStr();
 
-	cout << "================================================================================\n";
-	cout << "= " << infoStr << endl;
-	cout << "= " << "FECs:" << endl;
-	cout << "= " << "Value: " << valueStr() << endl;
-	cout << "================================================================================\n";
+   cout << "================================================================================\n";
+   cout << "= " << infoStr << endl;
+   cout << "= " << "FECs:" << endl;
+   cout << "= " << "Value: " << valueStr() << endl;
+   cout << "================================================================================\n";
 }
 
 void
@@ -75,53 +75,53 @@ CirGate::reportFanout(int level) const
 void
 CirGate::rec_rptFanin(const CirGate* g, bool inv, int level, int nSpace) const
 {
-	if (g == 0) return;
-	if (level < 0) return;
-	for (int i = 0; i < nSpace; ++i) cout << ' ';
-	cout << (inv ? "!" : "") << g->getTypeStr() << " " << g->var();
-	if (g->ref() == globalRef && level > 0) {
-		cout << " (*)" << endl;
-		return;
-	}
-	cout << endl;
-	if (level > 0 && g->isAig()) g->setRef(globalRef);
-	rec_rptFanin(g->fanin0_gate(), g->fanin0_inv(), level - 1, nSpace + 2);
-	rec_rptFanin(g->fanin1_gate(), g->fanin1_inv(), level - 1, nSpace + 2);
+   if (g == 0) return;
+   if (level < 0) return;
+   for (int i = 0; i < nSpace; ++i) cout << ' ';
+   cout << (inv ? "!" : "") << g->getTypeStr() << " " << g->var();
+   if (g->ref() == globalRef && level > 0) {
+      cout << " (*)" << endl;
+      return;
+   }
+   cout << endl;
+   if (level > 0 && g->isAig()) g->setRef(globalRef);
+   rec_rptFanin(g->fanin0_gate(), g->fanin0_inv(), level - 1, nSpace + 2);
+   rec_rptFanin(g->fanin1_gate(), g->fanin1_inv(), level - 1, nSpace + 2);
 }
 
 void
 CirGate::rec_rptFanout(const CirGate* g, bool inv, int level, int nSpace) const 
 {
-	if (g == 0) return;
-	if (level < 0) return;
-	for (int i = 0; i < nSpace; ++i) cout << ' ';
-	cout << (inv ? "!" : "") << g->getTypeStr() << " " << g->var();
-	if (g->ref() == globalRef && level > 0) {
-		cout << " (*)" << endl;
-		return;
-	}
-	cout << endl;
-	if (level > 0 && g->isAig()) g->setRef(globalRef);
-	for (unsigned i = 0, n = g->nFanouts(); i < n; ++i) 
-		rec_rptFanout(g->fanout_gate(i), g->fanout_inv(i), level - 1, nSpace + 2);
+   if (g == 0) return;
+   if (level < 0) return;
+   for (int i = 0; i < nSpace; ++i) cout << ' ';
+   cout << (inv ? "!" : "") << g->getTypeStr() << " " << g->var();
+   if (g->ref() == globalRef && level > 0) {
+      cout << " (*)" << endl;
+      return;
+   }
+   cout << endl;
+   if (level > 0 && g->isAig()) g->setRef(globalRef);
+   for (unsigned i = 0, n = g->nFanouts(); i < n; ++i) 
+      rec_rptFanout(g->fanout_gate(i), g->fanout_inv(i), level - 1, nSpace + 2);
 }
 
 string 
 CirGate::valueStr() const
 {
-	static const unsigned nBit     = 64;
-	static const unsigned nCluster = 8;
-	string str = "";
-	size_t value_copy = _value;
-	for (unsigned i = 0; i < nBit; ++i) {
-		if (!(i % nCluster) && i != 0) str = "_" + str;
-		if (value_copy & CONST1)
-			str = "1" + str;
-		else
-			str = "0" + str;
-		value_copy >>= 1;
-	}
-	return str;
+   static const unsigned nBit     = 64;
+   static const unsigned nCluster = 8;
+   string str = "";
+   size_t value_copy = _value;
+   for (unsigned i = 0; i < nBit; ++i) {
+      if (!(i % nCluster) && i != 0) str = "_" + str;
+      if (value_copy & CONST1)
+         str = "1" + str;
+      else
+         str = "0" + str;
+      value_copy >>= 1;
+   }
+   return str;
 }
 
 /**************************************/
@@ -145,38 +145,38 @@ CirGate::sortFanout()
 bool 
 CirGate::replaceFanin(CirGate* newFanin, bool newInv, CirGate* oldFanin)
 {
-	if (_fanin0.gate() == oldFanin) {
-		_fanin0.setGateV(newFanin, newInv);
-		return true;
-	}
-	if (_fanin1.gate() == oldFanin) {
-		_fanin1.setGateV(newFanin, newInv);
-		return true;
-	}
-	return false;
+   if (_fanin0.gate() == oldFanin) {
+      _fanin0.setGateV(newFanin, newInv);
+      return true;
+   }
+   if (_fanin1.gate() == oldFanin) {
+      _fanin1.setGateV(newFanin, newInv);
+      return true;
+   }
+   return false;
 }
 
 bool 
 CirGate::replaceFanout(CirGate* newFanin, bool newInv, CirGate* oldFanin)
 {
-	for (unsigned i = 0; i < _fanouts.size(); ++i) {
-		if (_fanouts[i].gate() == oldFanin) {
-			_fanouts[i].setGateV(newFanin, newInv);
-			return true;
-		}
-	}
-	return false;
+   for (unsigned i = 0; i < _fanouts.size(); ++i) {
+      if (_fanouts[i].gate() == oldFanin) {
+         _fanouts[i].setGateV(newFanin, newInv);
+         return true;
+      }
+   }
+   return false;
 }
 
 bool 
 CirGate::rmFanout(CirGate* g)
 {
-	for (unsigned i = 0; i < _fanouts.size(); ++i) {
-		if (_fanouts[i].gate() == g) {
-			_fanouts[i] = _fanouts.back();
-			_fanouts.pop_back();
-			return true;
-		}
-	}
-	return false;
+   for (unsigned i = 0; i < _fanouts.size(); ++i) {
+      if (_fanouts[i].gate() == g) {
+         _fanouts[i] = _fanouts.back();
+         _fanouts.pop_back();
+         return true;
+      }
+   }
+   return false;
 }

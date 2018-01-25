@@ -39,48 +39,48 @@ CirMgr::randomSim()
 void
 CirMgr::fileSim(ifstream& patternFile)
 {
-	// Trivial case (no PI, no Simulation)
-	if (_nPI == 0) return;
+   // Trivial case (no PI, no Simulation)
+   if (_nPI == 0) return;
 
-	unsigned i, j;
+   unsigned i, j;
 
-	// Collect all SimValue strings
-	vector<string> patternStrings;
-	string patternStr;
-	int nPatterns = 0;
-	while (getline(patternFile, patternStr, '\n')) {
-		++nPatterns;
-		// Length check
-		if (patternStr.length() != _nPI) {
-			cerr << "\nError: Pattern(" << patternStr << ") length(" << patternStr.size() 
-				  << ") does not match the number of inputs(" << _nPI << ") in a circuit!!\n";
-			cout << "0 patterns simulated.\n";
-			return;
-		}
-		// Bit check
-		for (i = 0; i < patternStr.length(); ++i) {
-			if (patternStr[i] != '0' && patternStr[i] != '1') {
-				cerr << "Error: Pattern(" << patternStr << ") contains a non-0/1 character(\'" 
-					  << patternStr[i] << "\').";
-				cout << "0 patterns simulated.\n";
-				return;
-			}
-		}
-		// Collect pattern
-		patternStrings.push_back(patternStr);
-	}
+   // Collect all SimValue strings
+   vector<string> patternStrings;
+   string patternStr;
+   int nPatterns = 0;
+   while (getline(patternFile, patternStr, '\n')) {
+      ++nPatterns;
+      // Length check
+      if (patternStr.length() != _nPI) {
+         cerr << "\nError: Pattern(" << patternStr << ") length(" << patternStr.size() 
+              << ") does not match the number of inputs(" << _nPI << ") in a circuit!!\n";
+         cout << "0 patterns simulated.\n";
+         return;
+      }
+      // Bit check
+      for (i = 0; i < patternStr.length(); ++i) {
+         if (patternStr[i] != '0' && patternStr[i] != '1') {
+            cerr << "Error: Pattern(" << patternStr << ") contains a non-0/1 character(\'" 
+                 << patternStr[i] << "\').";
+            cout << "0 patterns simulated.\n";
+            return;
+         }
+      }
+      // Collect pattern
+      patternStrings.push_back(patternStr);
+   }
 
-	// Set PI values
-	for (i = 0; i < patternStrings.size(); ++i) {
-		for (j = 0; j < patternStrings[i].length(); ++j) {
-			if (patternStrings[i][j] == '0')
-				pi(j)->addPattern0();
-			else 
-				pi(j)->addPattern1();
-		}
-	}
+   // Set PI values
+   for (i = 0; i < patternStrings.size(); ++i) {
+      for (j = 0; j < patternStrings[i].length(); ++j) {
+         if (patternStrings[i][j] == '0')
+            pi(j)->addPattern0();
+         else 
+            pi(j)->addPattern1();
+      }
+   }
 
-	cout << nPatterns << " patterns simulated.\n";
+   cout << nPatterns << " patterns simulated.\n";
 }
 
 /*************************************************/

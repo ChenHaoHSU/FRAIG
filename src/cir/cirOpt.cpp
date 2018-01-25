@@ -35,49 +35,49 @@ extern unsigned globalRef;
 void
 CirMgr::sweep()
 {
-	// Mark all gates in DFS List
-	++globalRef;
-	for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
-		_vDfsList[i]->setRef(globalRef);
+   // Mark all gates in DFS List
+   ++globalRef;
+   for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
+      _vDfsList[i]->setRef(globalRef);
 
-		// [Note] that UNDEF gates never exist in DFS list
-		// So, make sure that UNDEF gates which can be reached by POs
-		// will be marked.
-		if (_vDfsList[i]->isPo()) 
-			_vDfsList[i]->fanin0_gate()->setRef(globalRef);
-		else if (_vDfsList[i]->isFloating()) { 
-			_vDfsList[i]->fanin0_gate()->setRef(globalRef);
-			_vDfsList[i]->fanin1_gate()->setRef(globalRef);
-		}
-		else {}
-	}
+      // [Note] that UNDEF gates never exist in DFS list
+      // So, make sure that UNDEF gates which can be reached by POs
+      // will be marked.
+      if (_vDfsList[i]->isPo()) 
+         _vDfsList[i]->fanin0_gate()->setRef(globalRef);
+      else if (_vDfsList[i]->isFloating()) { 
+         _vDfsList[i]->fanin0_gate()->setRef(globalRef);
+         _vDfsList[i]->fanin1_gate()->setRef(globalRef);
+      }
+      else {}
+   }
 
-	// Sweeping unmarked gates
-	CirGate* g = 0; // for convenient
-	for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i) {
-		if (_vAllGates[i]) {
-			g = _vAllGates[i];
-			if (g->ref() != globalRef) {
-				// sweep AIG
-				if (g->isAig()) {
-            	g->fanin0_gate()->rmFanout(g);
-            	g->fanin1_gate()->rmFanout(g);
-            	fprintf(stdout, "Sweeping: AIG(%d) removed...\n", g->var());
-	            // cout << "Sweeping: AIG(" << g->var() << ") removed...\n";
-	   			delGate(g);
-				}
-				// sweep UNDEF
-				else if (g->isUndef()) {
-            	fprintf(stdout, "Sweeping: UNDEF(%d) removed...\n", g->var());
-	            // cout << "Sweeping: UNDEF(" << g->var() << ") removed...\n";
-	   			delGate(g);
-	         }
-	         else {}
-	      }
-	   }
-	}
+   // Sweeping unmarked gates
+   CirGate* g = 0; // for convenient
+   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i) {
+      if (_vAllGates[i]) {
+         g = _vAllGates[i];
+         if (g->ref() != globalRef) {
+            // sweep AIG
+            if (g->isAig()) {
+               g->fanin0_gate()->rmFanout(g);
+               g->fanin1_gate()->rmFanout(g);
+               fprintf(stdout, "Sweeping: AIG(%d) removed...\n", g->var());
+               // cout << "Sweeping: AIG(" << g->var() << ") removed...\n";
+               delGate(g);
+            }
+            // sweep UNDEF
+            else if (g->isUndef()) {
+               fprintf(stdout, "Sweeping: UNDEF(%d) removed...\n", g->var());
+               // cout << "Sweeping: UNDEF(" << g->var() << ") removed...\n";
+               delGate(g);
+            }
+            else {}
+         }
+      }
+   }
 
-	// Update Lists
+   // Update Lists
    buildFloatingList();
    buildUnusedList();
    buildUndefList();
@@ -92,35 +92,35 @@ CirMgr::sweep()
 void
 CirMgr::optimize()
 {
-	OptType type = OPT_NONE;
-	CirGate* g = 0;
-	for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
+   OptType type = OPT_NONE;
+   CirGate* g = 0;
+   for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
 
-		// Skip non-AIG gate
-		if (!_vDfsList[i]->isAig()) continue;
+      // Skip non-AIG gate
+      if (!_vDfsList[i]->isAig()) continue;
 
-		// Apply optimization (4 cases)
-		// Case1: One of fanins is const0
-		// Case2: One of fanins is const1
-		// Case3: Two fanins are the same (var) and in the same phase
-		// Case4: Two fanins are the same (var) but in inverting phase
-		// 
-		g = _vDfsList[i];
-		type = optType(g);
-		switch (type)
-		{
-			case OPT_CONST0:    optConst0(g);    break;
-			case OPT_CONST1:    optConst1(g);    break;
-			case OPT_SAMEFANIN: optSameFanin(g); break;
-			case OPT_INVFANIN:  optInvFanin(g);  break;
-			default: continue; // OPT_NONE
-		}
+      // Apply optimization (4 cases)
+      // Case1: One of fanins is const0
+      // Case2: One of fanins is const1
+      // Case3: Two fanins are the same (var) and in the same phase
+      // Case4: Two fanins are the same (var) but in inverting phase
+      // 
+      g = _vDfsList[i];
+      type = optType(g);
+      switch (type)
+      {
+         case OPT_CONST0:    optConst0(g);    break;
+         case OPT_CONST1:    optConst1(g);    break;
+         case OPT_SAMEFANIN: optSameFanin(g); break;
+         case OPT_INVFANIN:  optInvFanin(g);  break;
+         default: continue; // OPT_NONE
+      }
 
-	   // Delete the optimized-out gate
-	   delGate(g);
-	}
+      // Delete the optimized-out gate
+      delGate(g);
+   }
 
-	// Update Lists
+   // Update Lists
    buildDfsList();
    buildFloatingList();
    buildUnusedList();
@@ -134,26 +134,26 @@ CirMgr::optimize()
 OptType 
 CirMgr::optType(CirGate* g) const
 {
-	if ( g->fanin0_gate() == constGate() ) {
-		if ( !g->fanin0_inv() ) 
-			return OPT_CONST0;
-		else
-			return OPT_CONST1;
-	}
+   if ( g->fanin0_gate() == constGate() ) {
+      if ( !g->fanin0_inv() ) 
+         return OPT_CONST0;
+      else
+         return OPT_CONST1;
+   }
 
-	if ( g->fanin1_gate() == constGate() ) {
-		if ( !g->fanin1_inv() ) 
-			return OPT_CONST0;
-		else
-			return OPT_CONST1;
-	}
+   if ( g->fanin1_gate() == constGate() ) {
+      if ( !g->fanin1_inv() ) 
+         return OPT_CONST0;
+      else
+         return OPT_CONST1;
+   }
 
-	if ( g->fanin0_gate() == g->fanin1_gate() ) {
-		if ( g->fanin0_inv()  == g->fanin1_inv() )
-			return OPT_SAMEFANIN;
-		else 
-			return OPT_INVFANIN;
-	}
+   if ( g->fanin0_gate() == g->fanin1_gate() ) {
+      if ( g->fanin0_inv()  == g->fanin1_inv() )
+         return OPT_SAMEFANIN;
+      else 
+         return OPT_INVFANIN;
+   }
 
    return OPT_NONE;
 }
@@ -161,57 +161,57 @@ CirMgr::optType(CirGate* g) const
 void 
 CirMgr::optConst0(CirGate* g)
 {
-	mergeGate(constGate(), g, false);
-	cout << "Simplifying: " << constGate()->var() 
-	     << " merging " << g->var() << "...\n";
+   mergeGate(constGate(), g, false);
+   cout << "Simplifying: " << constGate()->var() 
+        << " merging " << g->var() << "...\n";
 }
 
 void 
 CirMgr::optConst1(CirGate* g)
 {
-	if (g->fanin0_gate() == constGate()) {
-		mergeGate(g->fanin1_gate(), g, g->fanin1_inv());
-		cout << "Simplifying: " << g->fanin1_gate()->var() 
-		     << " merging " << (g->fanin1_inv() ? "!" : "") 
-		     << g->var() << "...\n";
-	}
-	else {
-		mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
-		cout << "Simplifying: " << g->fanin0_gate()->var() 
-		     << " merging " << (g->fanin0_inv() ? "!" : "") 
-		     << g->var() << "...\n";
-	}
+   if (g->fanin0_gate() == constGate()) {
+      mergeGate(g->fanin1_gate(), g, g->fanin1_inv());
+      cout << "Simplifying: " << g->fanin1_gate()->var() 
+           << " merging " << (g->fanin1_inv() ? "!" : "") 
+           << g->var() << "...\n";
+   }
+   else {
+      mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
+      cout << "Simplifying: " << g->fanin0_gate()->var() 
+           << " merging " << (g->fanin0_inv() ? "!" : "") 
+           << g->var() << "...\n";
+   }
 }
 
 void 
 CirMgr::optSameFanin(CirGate* g)
 {
-	mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
-	cout << "Simplifying: " << g->fanin0_gate()->var() 
-	     << " merging " << (g->fanin0_inv() ? "!" : "") 
-	     << g->var() << "...\n";
+   mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
+   cout << "Simplifying: " << g->fanin0_gate()->var() 
+        << " merging " << (g->fanin0_inv() ? "!" : "") 
+        << g->var() << "...\n";
 }
 
 void 
 CirMgr::optInvFanin(CirGate* g)
 {
-	mergeGate(constGate(), g, false);
-	cout << "Simplifying: " << constGate()->var() 
-	     << " merging " << g->var() << "...\n";
+   mergeGate(constGate(), g, false);
+   cout << "Simplifying: " << constGate()->var() 
+        << " merging " << g->var() << "...\n";
 }
 
 void 
 CirMgr::mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged = false) 
 {
-	// Remove deadGate from deadGate's fanins' fanout
-	assert( deadGate->fanin0_gate()->rmFanout(deadGate) );
-	assert( deadGate->fanin1_gate()->rmFanout(deadGate) );
+   // Remove deadGate from deadGate's fanins' fanout
+   assert( deadGate->fanin0_gate()->rmFanout(deadGate) );
+   assert( deadGate->fanin1_gate()->rmFanout(deadGate) );
 
-	// Replace deadGate's fanouts' fanin with liveGate,
-	// and also add to liveGate's fanout
-	for (unsigned i = 0, n = deadGate->nFanouts(); i < n; ++i) {
-		assert( deadGate->fanout_gate(i)->replaceFanin(liveGate, 
-			deadGate->fanout_inv(i) ^ invMerged, deadGate) );
-		liveGate->addFanout(deadGate->fanout_gate(i), deadGate->fanout_inv(i) ^ invMerged);
-	}
+   // Replace deadGate's fanouts' fanin with liveGate,
+   // and also add to liveGate's fanout
+   for (unsigned i = 0, n = deadGate->nFanouts(); i < n; ++i) {
+      assert( deadGate->fanout_gate(i)->replaceFanin(liveGate, 
+         deadGate->fanout_inv(i) ^ invMerged, deadGate) );
+      liveGate->addFanout(deadGate->fanout_gate(i), deadGate->fanout_inv(i) ^ invMerged);
+   }
 }
