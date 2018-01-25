@@ -127,8 +127,8 @@ public:
    bool rmFanout(CirGate*);
 
    // Value
-   void addPattern0() { _value = _value << CONST1; }
-   void addPattern1() { _value = (_value << CONST1) | CONST1; cout << _value << endl;}
+   void addPattern0() { _value = _value << CONST1;            }
+   void addPattern1() { _value = (_value << CONST1) | CONST1; }
    virtual void calValue() = 0; 
 
 private:
