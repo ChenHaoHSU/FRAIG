@@ -383,9 +383,11 @@ CirMgr::sortAllGateFanout()
 /*   class CirMgr member functions for freeing pointers   */
 /**********************************************************/
 void 
-CirMgr::addGarbage(CirGate* g)
+CirMgr::delGate(CirGate* g)
 {
+   // assert(!g);
    _vGarbageList.push_back(g);
+   _vAllGates[g->var()] = 0;
 }
 
 void 

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-// TODO: (Optionally) Implement your own HashMap and Cache classes.
+// TODO: Implement your own HashMap and Cache classes.
 
 //-----------------------
 // Define HashMap classes
@@ -39,7 +39,8 @@ class HashMap
 typedef pair<HashKey, HashData> HashNode;
 
 public:
-   HashMap(size_t b=0) : _numBuckets(0), _buckets(0) { if (b != 0) init(b); }
+   HashMap() : _numBuckets(0), _buckets(0) {}
+   HashMap(size_t b) : _numBuckets(0), _buckets(0) { init(b); }
    ~HashMap() { reset(); }
 
    // [Optional] TODO: implement the HashMap<HashKey, HashData>::iterator
@@ -51,13 +52,56 @@ public:
    //   - ++/--iterator, iterator++/--
    //   - operators '=', '==', !="
    //
+   // (_bId, _bnId) range from (0, 0) to (_numBuckets, 0)
+   //
    class iterator
    {
       friend class HashMap<HashKey, HashData>;
 
    public:
+      iterator(HashMap<HashKey, HashData>* h = 0, size_t b = 0, size_t bn = 0)
+      : _hash(h), _bId(b), _bnId(bn) {}
+      iterator(const iterator& i)
+      : _hash(i._hash), _bId(i._bId), _bnId(i._bnId) {}
+      ~iterator() {} // Should NOT delete HashData
+
+      const HashNode& operator * () const { return (*_hash)[_bId][_bnId]; }
+      HashNode& operator * () { return (*_hash)[_bId][_bnId]; }
+      iterator& operator ++ () {
+         if (_hash == 0) return (*this);
+         if (_bId >= _hash->_numBuckets) return (*this);
+         if (++_bnId >= (*_hash)[_bId].size()) {
+            while ((++_bId < _hash->_numBuckets) && (*_hash)[_bId].empty());
+            _bnId = 0;
+         }
+         return (*this);
+      }
+      iterator& operator -- () {
+         if (_hash == 0) return (*this);
+         if (_bnId == 0) {
+            if (_bId == 0) return (*this);
+            while ((*_hash)[--_bId].empty())
+               if (_bId == 0) return (*this);
+            _bnId = (*_hash)[_bId].size() - 1;
+         }
+         else
+            --_bnId;
+         return (*this);
+      }
+      iterator operator ++ (int) { iterator li=(*this); ++(*this); return li; }
+      iterator operator -- (int) { iterator li=(*this); --(*this); return li; }
+
+      iterator& operator = (const iterator& i) {
+         _hash = i._hash; _bId = i._bId; _bnId = i._bnId; return (*this); }
+
+      bool operator != (const iterator& i) const { return !(*this == i); }
+      bool operator == (const iterator& i) const {
+         return (_hash == i._hash && _bId == i._bId && _bnId == i._bnId); }
 
    private:
+      HashMap<HashKey, HashData>*   _hash;
+      size_t                        _bId;
+      size_t                        _bnId;
    };
 
    void init(size_t b) {
@@ -65,9 +109,6 @@ public:
    void reset() {
       _numBuckets = 0;
       if (_buckets) { delete [] _buckets; _buckets = 0; }
-   }
-   void clear() {
-      for (size_t i = 0; i < _numBuckets; ++i) _buckets[i].clear();
    }
    size_t numBuckets() const { return _numBuckets; }
 
@@ -77,36 +118,77 @@ public:
    // TODO: implement these functions
    //
    // Point to the first valid data
-   iterator begin() const { return iterator(); }
+   iterator begin() const {
+      if (_buckets == 0) return end();
+/*
+      size_t i = 0;
+      while (_buckets[i].empty()) ++i;
+      if (i == _numBuckets) return end();
+      return iterator(const_cast<HashMap<HashKey, HashData>*>(this), i, 0);
+*/
+      for (size_t i = 0; i < _numBuckets; ++i)
+         if (!_buckets[i].empty())
+            return iterator(const_cast<HashMap<HashKey, HashData>*>(this), i, 0);
+      return end();
+   }
    // Pass the end
-   iterator end() const { return iterator(); }
+   iterator end() const {
+      return iterator(const_cast<HashMap<HashKey, HashData>*>(this),
+             _numBuckets, 0);
+   }
    // return true if no valid data
-   bool empty() const { return true; }
+   bool empty() const {
+      for (size_t i = 0; i < _numBuckets; ++i)
+         if (_buckets[i].size() != 0) return false;
+      return true;
+   }
    // number of valid data
-   size_t size() const { size_t s = 0; return s; }
+   size_t size() const {
+      size_t s = 0;
+      for (size_t i = 0; i < _numBuckets; ++i) s += _buckets[i].size();
+      return s;
+   }
 
    // check if k is in the hash...
-   // if yes, return true;
+   // if yes, update n and return true;
    // else return false;
-   bool check(const HashKey& k) const { return false; }
+   bool check(const HashKey& k, HashData& n) const {
+      size_t b = bucketNum(k);
+      for (size_t i = 0, bn = _buckets[b].size(); i < bn; ++i)
+         if (_buckets[b][i].first == k) {
+            n = _buckets[b][i].second;
+            return true;
+         }
+      return false;
+   }
 
-   // query if k is in the hash...
-   // if yes, replace d with the data in the hash and return true;
-   // else return false;
-   bool query(const HashKey& k, HashData& d) const { return false; }
-
-   // update the entry in hash that is equal to k (i.e. == return true)
-   // if found, update that entry with d and return true;
-   // else insert d into hash as a new entry and return false;
-   bool update(const HashKey& k, HashData& d) { return false; }
-
-   // return true if inserted d successfully (i.e. k is not in the hash)
+   // return true if inserted successfully (i.e. k is not in the hash)
    // return false is k is already in the hash ==> will not insert
-   bool insert(const HashKey& k, const HashData& d) { return true; }
+   bool insert(const HashKey& k, const HashData& d) {
+      size_t b = bucketNum(k);
+      for (size_t i = 0, bn = _buckets[b].size(); i < bn; ++i)
+         if (_buckets[b][i].first == k)
+            return false;
+      _buckets[b].push_back(HashNode(k, d));
+      return true;
+   }
 
-   // return true if removed successfully (i.e. k is in the hash)
-   // return fasle otherwise (i.e. nothing is removed)
-   bool remove(const HashKey& k) { return false; }
+   // return true if inserted successfully (i.e. k is not in the hash)
+   // return false is k is already in the hash ==> still do the insertion
+   bool replaceInsert(const HashKey& k, const HashData& d) {
+      size_t b = bucketNum(k);
+      for (size_t i = 0, bn = _buckets[b].size(); i < bn; ++i)
+         if (_buckets[b][i].first == k) {
+            _buckets[b][i].second = d;
+            return false;
+         }
+      _buckets[b].push_back(HashNode(k, d));
+      return true;
+   }
+
+   // Need to be sure that k is not in the hash
+   void forceInsert(const HashKey& k, const HashData& d) {
+      _buckets[bucketNum(k)].push_back(HashNode(k, d)); }
 
 private:
    // Do not add any extra data member

@@ -62,15 +62,15 @@ CirMgr::sweep()
 				if (g->isAig()) {
             	g->fanin0_gate()->rmFanout(g);
             	g->fanin1_gate()->rmFanout(g);
-	            cout << "Sweeping: AIG(" << g->var() << ") removed...\n";
-	            addGarbage(_vAllGates[i]);
-	            _vAllGates[i] = 0;
+            	fprintf(stdout, "Sweeping: AIG(%d) removed...\n", g->var());
+	            // cout << "Sweeping: AIG(" << g->var() << ") removed...\n";
+	   			delGate(g);
 				}
 				// sweep UNDEF
 				else if (g->isUndef()) {
-	            cout << "Sweeping: UNDEF(" << g->var() << ") removed...\n";
-	            addGarbage(_vAllGates[i]);
-	            _vAllGates[i] = 0;
+            	fprintf(stdout, "Sweeping: UNDEF(%d) removed...\n", g->var());
+	            // cout << "Sweeping: UNDEF(" << g->var() << ") removed...\n";
+	   			delGate(g);
 	         }
 	         else {}
 	      }
@@ -113,12 +113,11 @@ CirMgr::optimize()
 			case OPT_CONST1:    optConst1(g);    break;
 			case OPT_SAMEFANIN: optSameFanin(g); break;
 			case OPT_INVFANIN:  optInvFanin(g);  break;
-			default: continue;
+			default: continue; // OPT_NONE
 		}
 
-		// Delete the optimized-out gate
-      addGarbage(g);
-      _vAllGates[g->var()] = 0;
+	   // Delete the optimized-out gate
+	   delGate(g);
 	}
 
 	// Update Lists

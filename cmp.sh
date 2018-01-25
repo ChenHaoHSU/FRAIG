@@ -1,5 +1,6 @@
+EXE=./oldfraig
 EXE=./fraig
-REF=./fraig-64
+REF=./fraig-linux
 
 MYLOG=$1.mine.log
 REFLOG=$1.ref.log
@@ -9,4 +10,4 @@ $REF -f $1 1> $REFLOG
 
 diff $MYLOG $REFLOG
 
-#rm $MYLOG $REFLOG
+rm $MYLOG $REFLOG

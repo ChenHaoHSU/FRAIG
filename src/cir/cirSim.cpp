@@ -39,6 +39,10 @@ CirMgr::randomSim()
 void
 CirMgr::fileSim(ifstream& patternFile)
 {
+	string patternStr;
+	while (getline(patternFile, patternStr, '\n')) {
+		cout << patternStr << endl;
+	}
 }
 
 /*************************************************/

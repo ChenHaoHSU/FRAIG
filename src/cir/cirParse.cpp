@@ -58,6 +58,7 @@ CirMgr::parsePi(ifstream& fin)
 		fin >> lit;
 		newPiGate = new CirPiGate(++lineNo, VAR(lit));
 		_vAllGates[VAR(lit)] = newPiGate;
+		_vPi.push_back(newPiGate);
 	}
 	return true;
 }

@@ -35,11 +35,18 @@ class CirGateV
 public:
   #define NEG 0x1
   CirGateV(CirGate* g = 0, size_t phase = 0):  _gateV(size_t(g) + phase) {}
-  CirGate* gate() const { return (CirGate*)(_gateV & ~size_t(NEG)); }
-  bool isInv() const { return (_gateV & NEG); }
-  bool operator == (const CirGateV& i) const { return (gate() == i.gate() && isInv() == i.isInv()); }
-  bool null() const { return _gateV == 0; }
-  void setGateV(CirGate*g, bool phase) { _gateV = size_t(g) + size_t(phase); }
+  ~CirGateV() {}
+
+  CirGate* gate()                          const { return (CirGate*)(_gateV & ~size_t(NEG)); }
+  bool     isInv()                         const { return (_gateV & NEG); }
+  bool     null()                          const { return _gateV == 0; }
+  size_t   gateV()                         const { return _gateV; }
+  void     setGateV(CirGate*g, bool phase)       { _gateV = size_t(g) + size_t(phase); }
+
+  // Operator overload
+  bool   operator == (const CirGateV& c)   const { return _gateV == c.gateV(); }
+  size_t operator + (const CirGateV& c)    const { return _gateV + c.gateV(); }
+  size_t operator ^ (const CirGateV& c)    const { return _gateV ^ c.gateV(); }
 
 private:
   size_t _gateV;
@@ -64,6 +71,7 @@ public:
    unsigned ref()          const { return _ref;                  }
    size_t   value()        const { return _value;                }
 
+   // Fanin
    CirGateV fanin0()       const { return _fanin0;               }
    CirGateV fanin1()       const { return _fanin1;               }
    CirGate* fanin0_gate()  const { return _fanin0.gate();        }
@@ -73,6 +81,7 @@ public:
    unsigned fanin0_var()   const { return _fanin0.gate()->var(); }
    unsigned fanin1_var()   const { return _fanin1.gate()->var(); }
 
+   // Fanouts
    CirGateV fanout(unsigned i)      const { assert(i < _fanouts.size()); return _fanouts[i];         }
    CirGate* fanout_gate(unsigned i) const { assert(i < _fanouts.size()); return _fanouts[i].gate();  }
    bool     fanout_inv(unsigned i)  const { assert(i < _fanouts.size()); return _fanouts[i].isInv(); }
@@ -80,6 +89,7 @@ public:
    unsigned nFanouts()     const { return _fanouts.size();  }
    unsigned bFanoutEmpty() const { return _fanouts.empty(); }
 
+   // Type query
    virtual bool isPi()       const = 0;
    virtual bool isPo()       const = 0;
    virtual bool isAig()      const = 0;
@@ -116,6 +126,11 @@ public:
    bool replaceFanout(CirGate* newFanin, bool newInv, CirGate* oldFanin);
    bool rmFanout(CirGate*);
 
+   // Value
+   void addPattern0() { _ref = _ref << CONST1; }
+   void addPattern1() { _ref = _ref << CONST1 | CONST1; }
+   virtual void calValue() = 0; 
+
 private:
    unsigned         _lineNo;
    unsigned         _var;
@@ -145,12 +160,12 @@ public:
    virtual bool     isConst()      const { return false;   }
    virtual bool     isUndef()      const { return false;   }
    virtual bool     isFloating()   const { return false;   }
-
    virtual void printGate() const {
       cout << "PI  " << var();
       if (_symbol != "") cout << " (" << _symbol << ")";
       cout << endl;
    }
+   virtual void     calValue() {} 
 
    void setSymbol(const string& s) { _symbol = s; }
 
@@ -183,6 +198,7 @@ public:
       if (_symbol != "") cout << " (" << _symbol << ")";
       cout << endl;
    }
+   virtual void     calValue() { _value = _fanin0.gate()->value(); } 
    
    void setSymbol(const string& s) { _symbol = s; }
 
@@ -219,6 +235,11 @@ public:
            << (_fanin1.gate()->isUndef() ? "*" : "") << (_fanin1.isInv() ? "!" : "") 
            << _fanin1.gate()->var() << endl;
    }
+   virtual void calValue() { 
+      if (isUndef()) return;
+      _value = ( _fanin0.isInv() ? ~(_fanin0.gate()->value()) : _fanin0.gate()->value() ) 
+             & ( _fanin1.isInv() ? ~(_fanin1.gate()->value()) : _fanin1.gate()->value() );
+   } 
    
 private:
 };
@@ -245,6 +266,7 @@ public:
    virtual void printGate() const {
       cout << "CONST0" << endl;
    }
+   virtual void     calValue()           { _value = 0;     }
    
 private:
 };
