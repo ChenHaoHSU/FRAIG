@@ -38,15 +38,15 @@ public:
   ~CirGateV() {}
 
   CirGate* gate()                          const { return (CirGate*)(_gateV & ~size_t(NEG)); }
-  bool     isInv()                         const { return (_gateV & NEG); }
-  bool     null()                          const { return _gateV == 0; }
-  size_t   gateV()                         const { return _gateV; }
-  void     setGateV(CirGate*g, bool phase)       { _gateV = size_t(g) + size_t(phase); }
+  bool     isInv()                         const { return (_gateV & NEG);                    }
+  bool     null()                          const { return _gateV == 0;                       }
+  size_t   gateV()                         const { return _gateV;                            }
+  void     setGateV(CirGate*g, bool phase)       { _gateV = size_t(g) + size_t(phase);       }
 
   // Operator overload
   bool   operator == (const CirGateV& c)   const { return _gateV == c.gateV(); }
-  size_t operator + (const CirGateV& c)    const { return _gateV + c.gateV(); }
-  size_t operator ^ (const CirGateV& c)    const { return _gateV ^ c.gateV(); }
+  size_t operator +  (const CirGateV& c)   const { return _gateV + c.gateV();  }
+  size_t operator ^  (const CirGateV& c)   const { return _gateV ^ c.gateV();  }
 
 private:
   size_t _gateV;
@@ -160,12 +160,14 @@ public:
    virtual bool     isConst()      const { return false;   }
    virtual bool     isUndef()      const { return false;   }
    virtual bool     isFloating()   const { return false;   }
+
    virtual void printGate() const {
       cout << "PI  " << var();
       if (_symbol != "") cout << " (" << _symbol << ")";
       cout << endl;
    }
-   virtual void     calValue() {} 
+
+   virtual void calValue() {} 
 
    void setSymbol(const string& s) { _symbol = s; }
 
@@ -198,7 +200,7 @@ public:
       if (_symbol != "") cout << " (" << _symbol << ")";
       cout << endl;
    }
-   virtual void     calValue() { _value = _fanin0.gate()->value(); } 
+   virtual void calValue() { _value = _fanin0.gate()->value(); } 
    
    void setSymbol(const string& s) { _symbol = s; }
 
@@ -227,7 +229,7 @@ public:
       if (isUndef()) return false;
       return _fanin0.gate()->isUndef() || _fanin1.gate()->isUndef();
    }
-   virtual void printGate()  const {
+   virtual void printGate() const {
       assert(!isUndef());
       cout << "AIG " << var() << " "
            << (_fanin0.gate()->isUndef() ? "*" : "") << (_fanin0.isInv() ? "!" : "") 
