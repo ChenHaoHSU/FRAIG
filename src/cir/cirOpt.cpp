@@ -161,7 +161,7 @@ CirMgr::optType(CirGate* g) const
 void 
 CirMgr::optConst0(CirGate* g)
 {
-	mergeGates(constGate(), g, false);
+	mergeGate(constGate(), g, false);
 	cout << "Simplifying: " << constGate()->var() 
 	     << " merging " << g->var() << "...\n";
 }
@@ -170,13 +170,13 @@ void
 CirMgr::optConst1(CirGate* g)
 {
 	if (g->fanin0_gate() == constGate()) {
-		mergeGates(g->fanin1_gate(), g, g->fanin1_inv());
+		mergeGate(g->fanin1_gate(), g, g->fanin1_inv());
 		cout << "Simplifying: " << g->fanin1_gate()->var() 
 		     << " merging " << (g->fanin1_inv() ? "!" : "") 
 		     << g->var() << "...\n";
 	}
 	else {
-		mergeGates(g->fanin0_gate(), g, g->fanin0_inv());
+		mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
 		cout << "Simplifying: " << g->fanin0_gate()->var() 
 		     << " merging " << (g->fanin0_inv() ? "!" : "") 
 		     << g->var() << "...\n";
@@ -186,7 +186,7 @@ CirMgr::optConst1(CirGate* g)
 void 
 CirMgr::optSameFanin(CirGate* g)
 {
-	mergeGates(g->fanin0_gate(), g, g->fanin0_inv());
+	mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
 	cout << "Simplifying: " << g->fanin0_gate()->var() 
 	     << " merging " << (g->fanin0_inv() ? "!" : "") 
 	     << g->var() << "...\n";
@@ -195,13 +195,13 @@ CirMgr::optSameFanin(CirGate* g)
 void 
 CirMgr::optInvFanin(CirGate* g)
 {
-	mergeGates(constGate(), g, false);
+	mergeGate(constGate(), g, false);
 	cout << "Simplifying: " << constGate()->var() 
 	     << " merging " << g->var() << "...\n";
 }
 
 void 
-CirMgr::mergeGates(CirGate* liveGate, CirGate* deadGate, bool invMerged = false) 
+CirMgr::mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged = false) 
 {
 	// Remove deadGate from deadGate's fanins' fanout
 	assert( deadGate->fanin0_gate()->rmFanout(deadGate) );

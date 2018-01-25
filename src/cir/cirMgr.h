@@ -42,36 +42,13 @@ public:
    CirPoGate* po(const unsigned& i) const { assert(0 <= i && i < _nPO);      return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
    CirGate*   constGate()           const { return _vAllGates[0]; } 
 
-
    // Member functions about circuit construction
    bool readCircuit(const string&);
-   bool parseAag(ifstream&);
-   bool parsePi(ifstream&);
-   bool parsePo(ifstream&);
-   bool parseAig(ifstream&);
-   bool parseSymbol(ifstream&);
-   bool parseComment(ifstream&);
-   void preProcess();
-   void sortAllGateFanout();
-   CirGate* queryGate(unsigned);
 
-   // Member functions about gate lists
-   void buildDfsList();
-   void buildFloatingList();
-   void buildUnusedList();
-   void buildUndefList();
-   void countAig();
-   void rec_dfs(CirGate*);
 
    // Member functions about circuit optimization
    void sweep();
    void optimize();
-   OptType optType(CirGate*) const;
-   void optConst0(CirGate*);
-   void optConst1(CirGate*);
-   void optSameFanin(CirGate*);
-   void optInvFanin(CirGate*);
-   void mergeGates(CirGate* liveGate, CirGate* deadGate, bool invMerged);
 
    // Member functions about simulation
    void randomSim();
@@ -117,7 +94,36 @@ private:
 
    ofstream           *_simLog;        // Log file of Simulation result
 
-   // Helper functions
+
+   // Private functions for parsing AAG file
+   bool parseAag(ifstream&);
+   bool parsePi(ifstream&);
+   bool parsePo(ifstream&);
+   bool parseAig(ifstream&);
+   bool parseSymbol(ifstream&);
+   bool parseComment(ifstream&);
+   void preProcess();
+   CirGate* queryGate(unsigned);
+
+   // Private functions about gate lists
+   void buildDfsList();
+   void buildFloatingList();
+   void buildUnusedList();
+   void buildUndefList();
+   void countAig();
+   void rec_dfs(CirGate*);
+
+   // Private functions for cirSweep and cirOptimize
+   OptType optType(CirGate*) const;
+   void optConst0(CirGate*);
+   void optConst1(CirGate*);
+   void optSameFanin(CirGate*);
+   void optInvFanin(CirGate*);
+
+   // Common functions
+   void sortAllGateFanout();
+   void mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged);
+
 };
 
 #endif // CIR_MGR_H

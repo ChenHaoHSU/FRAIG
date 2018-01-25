@@ -54,7 +54,7 @@ CirMgr::strash()
 			cout << "Strashing: " << queryS.gate()->var() 
 			     << " merging "   << _vDfsList[i]->var() 
 			     << "...\n";
-			mergeGates(queryS.gate(), _vDfsList[i], false);
+			mergeGate(queryS.gate(), _vDfsList[i], false);
 			delGate(_vDfsList[i]);
 		}
 		else 
@@ -80,7 +80,7 @@ CirMgr::strash()
 			// cout << "Strashing: " << valueM->var() 
 			//      << " merging "   << _vDfsList[i]->var() 
 			//      << "...\n";
-			mergeGates(valueM, _vDfsList[i], false);
+			mergeGate(valueM, _vDfsList[i], false);
 			delGate(_vDfsList[i]);
 		}
 		else 
