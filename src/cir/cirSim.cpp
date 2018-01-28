@@ -42,47 +42,65 @@ CirMgr::fileSim(ifstream& patternFile)
    // Trivial case (no PI, no Simulation)
    if (_nPI == 0) return;
 
-   unsigned i, j;
 
-   // Collect all SimValue strings
-   vector<string> patternStrings;
-   string patternStr;
-   int nPatterns = 0;
-   while (getline(patternFile, patternStr, '\n')) {
-      ++nPatterns;
-      // Length check
-      if (patternStr.length() != _nPI) {
-         cerr << "\nError: Pattern(" << patternStr << ") length(" << patternStr.size() 
-              << ") does not match the number of inputs(" << _nPI << ") in a circuit!!\n";
-         cout << "0 patterns simulated.\n";
-         return;
-      }
-      // Bit check
-      for (i = 0; i < patternStr.length(); ++i) {
-         if (patternStr[i] != '0' && patternStr[i] != '1') {
-            cerr << "Error: Pattern(" << patternStr << ") contains a non-0/1 character(\'" 
-                 << patternStr[i] << "\').";
-            cout << "0 patterns simulated.\n";
-            return;
-         }
-      }
-      // Collect pattern
-      patternStrings.push_back(patternStr);
+   // Load patternFile
+   vector<string> vPatternStrings;
+   if (!loadPatternFile(patternFile, vPatternStrings)) {
+      cout << "0 patterns simulated.\n";
+      return;
    }
 
    // Set PI values
-   for (i = 0; i < patternStrings.size(); ++i) {
-      for (j = 0; j < patternStrings[i].length(); ++j) {
-         if (patternStrings[i][j] == '0')
+   unsigned i, j;
+   for (i = 0; i < vPatternStrings.size(); ++i) {
+      for (j = 0; j < vPatternStrings[i].length(); ++j) {
+         if (vPatternStrings[i][j] == '0')
             pi(j)->addPattern0();
          else 
             pi(j)->addPattern1();
       }
    }
 
-   cout << nPatterns << " patterns simulated.\n";
+   
+
+   cout << vPatternStrings.size() << " patterns simulated.\n";
 }
 
 /*************************************************/
 /*   Private member functions about Simulation   */
 /*************************************************/
+bool
+CirMgr::loadPatternFile(ifstream& patternFile, vector<string>& vPatternStrings)
+{
+   // Error Handling:
+   //    1. Length of pattern string == nPI
+   //    2. Pattern string consists of '0' or '1'.
+   // 
+   vPatternStrings.clear();
+   string patternStr;
+   unsigned i;
+   while (getline(patternFile, patternStr, '\n')) {
+      // 1. Length check
+      if (patternStr.length() != _nPI) {
+         cerr << "\nError: Pattern(" << patternStr << ") length(" << patternStr.size() 
+              << ") does not match the number of inputs(" << _nPI << ") in a circuit!!\n";
+         return false;
+      }
+      // 2. Bit check
+      for (i = 0; i < patternStr.length(); ++i) {
+         if (patternStr[i] != '0' && patternStr[i] != '1') {
+            cerr << "Error: Pattern(" << patternStr << ") contains a non-0/1 character(\'" 
+                 << patternStr[i] << "\').";
+            return false;
+         }
+      } 
+      // Collect pattern
+      vPatternStrings.emplace_back(patternStr);
+   }
+}
+
+
+
+
+
+

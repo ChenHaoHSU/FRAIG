@@ -132,6 +132,10 @@ private:
    void sortAllGateFanout();
    void mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged);
 
+   // Private functions for cirSimulation
+   bool loadPatternFile(ifstream& patternFile, vector<string>& vPatternStrings);
+
+
 };
 
 #endif // CIR_MGR_H
