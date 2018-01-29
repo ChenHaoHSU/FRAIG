@@ -134,6 +134,7 @@ private:
 
    // Private functions for cirSimulation
    bool loadPatternFile(ifstream& patternFile, vector<string>& vPatternStrings);
+   void simulation();
 
 
 };

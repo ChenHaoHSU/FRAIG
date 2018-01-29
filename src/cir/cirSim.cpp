@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include "cirMgr.h"
 #include "cirGate.h"
 #include "util.h"
@@ -34,15 +35,15 @@ using namespace std;
 void
 CirMgr::randomSim()
 {
+
+
+
+
 }
 
 void
 CirMgr::fileSim(ifstream& patternFile)
 {
-   // Trivial case (no PI, no Simulation)
-   if (_nPI == 0) return;
-
-
    // Load patternFile
    vector<string> vPatternStrings;
    if (!loadPatternFile(patternFile, vPatternStrings)) {
@@ -51,19 +52,30 @@ CirMgr::fileSim(ifstream& patternFile)
    }
 
    // Set PI values
-   unsigned i, j;
-   for (i = 0; i < vPatternStrings.size(); ++i) {
-      for (j = 0; j < vPatternStrings[i].length(); ++j) {
-         if (vPatternStrings[i][j] == '0')
-            pi(j)->addPattern0();
-         else 
-            pi(j)->addPattern1();
+   unsigned i;
+   unsigned totalCnt  = 0;
+   unsigned periodCnt = 0; // SIM_CYCLE
+   unsigned nPatterns = vPatternStrings.size();
+   while (totalCnt < nPatterns) {
+      vector<size_t> model(_nPI, CONST0);
+      for (periodCnt = 0; periodCnt < SIM_CYCLE && totalCnt < nPatterns; ++periodCnt, ++totalCnt) {
+         for (i = 0; i < _nPI; ++i) {
+            if (vPatternStrings[totalCnt][i] == '0')
+               model[i] &= ~(CONST1 << periodCnt);
+            else // '1'
+               model[i] |=  (CONST1 << periodCnt);
+         }
+      }
+      // Set model to PIs
+      for (i = 0; i < model.size(); ++i) {
+         pi(i)->setValue(model[i]);
       }
    }
 
-   
+   // Simulate
+   simulation();
 
-   cout << vPatternStrings.size() << " patterns simulated.\n";
+   cout << nPatterns << " patterns simulated.\n";
 }
 
 /*************************************************/
@@ -79,14 +91,14 @@ CirMgr::loadPatternFile(ifstream& patternFile, vector<string>& vPatternStrings)
    vPatternStrings.clear();
    string patternStr;
    unsigned i;
-   while (getline(patternFile, patternStr, '\n')) {
+   while (patternFile >> patternStr) {
       // 1. Length check
       if (patternStr.length() != _nPI) {
          cerr << "\nError: Pattern(" << patternStr << ") length(" << patternStr.size() 
               << ") does not match the number of inputs(" << _nPI << ") in a circuit!!\n";
          return false;
       }
-      // 2. Bit check
+      // 2. Char check
       for (i = 0; i < patternStr.length(); ++i) {
          if (patternStr[i] != '0' && patternStr[i] != '1') {
             cerr << "Error: Pattern(" << patternStr << ") contains a non-0/1 character(\'" 
@@ -97,10 +109,17 @@ CirMgr::loadPatternFile(ifstream& patternFile, vector<string>& vPatternStrings)
       // Collect pattern
       vPatternStrings.emplace_back(patternStr);
    }
+   return true;
 }
 
+void 
+CirMgr::simulation() 
+{
+   // Calculate sim value
+   for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i)
+      _vDfsList[i]->calValue();
 
 
 
-
+}
 

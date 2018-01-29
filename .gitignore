@@ -8,3 +8,8 @@ pattern*
 *.swp
 *.out
 *.o
+*.a
+bin/*
+fraig
+fraig-linux
+fraig-64

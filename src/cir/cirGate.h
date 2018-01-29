@@ -99,6 +99,7 @@ public:
    // Basic setting methods
    void setLineNo(const unsigned& l)    { _lineNo = l;                        }
    void setVar(const unsigned& v)       { _var = v;                           }
+   void setValue(const size_t& v)       { _value = v;                         }
    void setRef(const unsigned& r) const { _ref = r; /* const method orz... */ }
    void setFanin0(const CirGateV& g)    { _fanin0 = g;                        } 
    void setFanin1(const CirGateV& g)    { _fanin1 = g;                        } 
@@ -126,9 +127,7 @@ public:
    bool rmFanout(CirGate*);
 
    // Value
-   void addPattern0() { _value = _value << CONST1;            }
-   void addPattern1() { _value = (_value << CONST1) | CONST1; }
-   virtual void calValue() = 0; 
+   virtual void calValue() = 0;
 
 private:
    unsigned         _lineNo;
@@ -199,7 +198,7 @@ public:
       if (_symbol != "") cout << " (" << _symbol << ")";
       cout << endl;
    }
-   virtual void calValue() { _value = _fanin0.gate()->value(); } 
+   virtual void calValue() { _value = ( _fanin0.isInv() ? ~(_fanin0.gate()->value()) : _fanin0.gate()->value() ); } 
    
    void setSymbol(const string& s) { _symbol = s; }
 

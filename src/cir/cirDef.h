@@ -31,15 +31,17 @@ class SatSolver;
 #define INV(x)     (x % 2)
 #define LIT(x, y)  ((x * 2) + y)
 
-#define CONST1     (0x1)
-#define ALL1       (~(0x1))
-
 #define BYTE_SIZE  (8)
 #define SIZET_SIZE (sizeof(size_t) * BYTE_SIZE)
 
 /**********************************************************/
-/*   Global Varibles                                      */
+/*   Constants                                            */
 /**********************************************************/
+constexpr size_t CONST1      = (0x1);
+constexpr size_t CONST0      = (0x0);
+constexpr size_t INV_CONST1  = (~(0x1));
+constexpr size_t ALL1        = (~(0x0));
+constexpr size_t SIM_CYCLE   = (sizeof(size_t) * BYTE_SIZE);
 
 /**********************************************************/
 /*   Global enum                                          */

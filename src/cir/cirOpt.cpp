@@ -86,35 +86,65 @@ CirMgr::sweep()
    sortAllGateFanout();
 }
 
-// Recursively simplifying from POs;
+// Recursively simplifying from POs; (PIs?????)
 // _dfsList needs to be reconstructed afterwards
 // UNDEF gates may be delete if its fanout becomes empty...
 void
 CirMgr::optimize()
 {
-   OptType type = OPT_NONE;
    CirGate* g = 0;
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
 
       // Skip non-AIG gate
       if (!_vDfsList[i]->isAig()) continue;
 
-      // Apply optimization (4 cases)
-      // Case1: One of fanins is const0
-      // Case2: One of fanins is const1
-      // Case3: Two fanins are the same (var) and in the same phase
-      // Case4: Two fanins are the same (var) but in inverting phase
-      // 
       g = _vDfsList[i];
-      type = optType(g);
-      switch (type)
-      {
-         case OPT_CONST0:    optConst0(g);    break;
-         case OPT_CONST1:    optConst1(g);    break;
-         case OPT_SAMEFANIN: optSameFanin(g); break;
-         case OPT_INVFANIN:  optInvFanin(g);  break;
-         default: continue; // OPT_NONE
+      // Apply trivial optimization (4 cases)
+      //    Case1: One of fanins is const0
+      //    Case2: One of fanins is const1
+      //    Case3: Two fanins are the same (var) and in the same phase
+      //    Case4: Two fanins are the same (var) but in inverting phase
+      // 
+      if ( g->fanin0_gate() == constGate() ) {
+         if ( !g->fanin0_inv() ) { // case1
+            mergeGate(constGate(), g, false);
+            cout << "Simplifying: " << constGate()->var() 
+                 << " merging " << g->var() << "...\n";
+         }
+         else{ // case2
+            mergeGate(g->fanin1_gate(), g, g->fanin1_inv());
+            cout << "Simplifying: " << g->fanin1_gate()->var() 
+                 << " merging " << (g->fanin1_inv() ? "!" : "") 
+                 << g->var() << "...\n";
+         }
       }
+      else if ( g->fanin1_gate() == constGate() ) {
+         if ( !g->fanin1_inv() ) { // case1
+            mergeGate(constGate(), g, false);
+            cout << "Simplifying: " << constGate()->var() 
+                 << " merging " << g->var() << "...\n";
+         }
+         else{ // case2
+            mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
+            cout << "Simplifying: " << g->fanin0_gate()->var() 
+                 << " merging " << (g->fanin0_inv() ? "!" : "") 
+                 << g->var() << "...\n";
+         }
+      }
+      else if ( g->fanin0_gate() == g->fanin1_gate() ) {
+         if ( g->fanin0_inv()  == g->fanin1_inv() ) { // case3
+            mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
+            cout << "Simplifying: " << g->fanin0_gate()->var() 
+                 << " merging " << (g->fanin0_inv() ? "!" : "") 
+                 << g->var() << "...\n";
+         }
+         else { // case4
+            mergeGate(constGate(), g, false);
+            cout << "Simplifying: " << constGate()->var() 
+                 << " merging " << g->var() << "...\n";
+         }
+      }
+      else continue; // no optimization
 
       // Delete the optimized-out gate
       delGate(g);
@@ -131,75 +161,6 @@ CirMgr::optimize()
 /***************************************************/
 /*   Private member functions about optimization   */
 /***************************************************/
-OptType 
-CirMgr::optType(CirGate* g) const
-{
-   if ( g->fanin0_gate() == constGate() ) {
-      if ( !g->fanin0_inv() ) 
-         return OPT_CONST0;
-      else
-         return OPT_CONST1;
-   }
-
-   if ( g->fanin1_gate() == constGate() ) {
-      if ( !g->fanin1_inv() ) 
-         return OPT_CONST0;
-      else
-         return OPT_CONST1;
-   }
-
-   if ( g->fanin0_gate() == g->fanin1_gate() ) {
-      if ( g->fanin0_inv()  == g->fanin1_inv() )
-         return OPT_SAMEFANIN;
-      else 
-         return OPT_INVFANIN;
-   }
-
-   return OPT_NONE;
-}
-
-void 
-CirMgr::optConst0(CirGate* g)
-{
-   mergeGate(constGate(), g, false);
-   cout << "Simplifying: " << constGate()->var() 
-        << " merging " << g->var() << "...\n";
-}
-
-void 
-CirMgr::optConst1(CirGate* g)
-{
-   if (g->fanin0_gate() == constGate()) {
-      mergeGate(g->fanin1_gate(), g, g->fanin1_inv());
-      cout << "Simplifying: " << g->fanin1_gate()->var() 
-           << " merging " << (g->fanin1_inv() ? "!" : "") 
-           << g->var() << "...\n";
-   }
-   else {
-      mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
-      cout << "Simplifying: " << g->fanin0_gate()->var() 
-           << " merging " << (g->fanin0_inv() ? "!" : "") 
-           << g->var() << "...\n";
-   }
-}
-
-void 
-CirMgr::optSameFanin(CirGate* g)
-{
-   mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
-   cout << "Simplifying: " << g->fanin0_gate()->var() 
-        << " merging " << (g->fanin0_inv() ? "!" : "") 
-        << g->var() << "...\n";
-}
-
-void 
-CirMgr::optInvFanin(CirGate* g)
-{
-   mergeGate(constGate(), g, false);
-   cout << "Simplifying: " << constGate()->var() 
-        << " merging " << g->var() << "...\n";
-}
-
 void 
 CirMgr::mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged = false) 
 {
@@ -215,3 +176,4 @@ CirMgr::mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged = false)
       liveGate->addFanout(deadGate->fanout_gate(i), deadGate->fanout_inv(i) ^ invMerged);
    }
 }
+
