@@ -37,11 +37,12 @@ class SatSolver;
 /**********************************************************/
 /*   Constants                                            */
 /**********************************************************/
-constexpr size_t CONST1      = (0x1);
-constexpr size_t CONST0      = (0x0);
-constexpr size_t INV_CONST1  = (~(0x1));
-constexpr size_t ALL1        = (~(0x0));
-constexpr size_t SIM_CYCLE   = (sizeof(size_t) * BYTE_SIZE);
+constexpr size_t CONST1           = (0x1);
+constexpr size_t CONST0           = (0x0);
+constexpr size_t INV_CONST1       = (~(0x1));
+constexpr size_t ALL1             = (~(0x0));
+constexpr size_t SIM_CYCLE        = (sizeof(size_t) * BYTE_SIZE);
+constexpr size_t HALF_SIM_CYCLE   = ((sizeof(size_t) * BYTE_SIZE) / 2);
 
 /**********************************************************/
 /*   Global enum                                          */

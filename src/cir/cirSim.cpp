@@ -35,45 +35,72 @@ using namespace std;
 void
 CirMgr::randomSim()
 {
+   unsigned max_fail  = 200;
 
+   unsigned i         = 0;
+   unsigned nPatterns = 0;
+   unsigned nFail     = 0; // fail to make #fecGrps change
 
+   CirModel model(_nPI);
 
+   while (nFail < max_fail) {
+      model.random();
+      for (i = 0; i < model.size(); ++i)
+         pi(i)->setValue(model[i]);
+      simulation();
+      nPatterns += SIM_CYCLE;
+      ++nFail;
+   }
 
+   cout << nPatterns << " patterns simulated.\n";
 }
 
 void
 CirMgr::fileSim(ifstream& patternFile)
 {
-   // Load patternFile
-   vector<string> vPatternStrings;
-   if (!loadPatternFile(patternFile, vPatternStrings)) {
-      cout << "0 patterns simulated.\n";
-      return;
-   }
-
    // Set PI values
    unsigned i;
-   unsigned totalCnt  = 0;
-   unsigned periodCnt = 0; // SIM_CYCLE
-   unsigned nPatterns = vPatternStrings.size();
-   while (totalCnt < nPatterns) {
-      vector<size_t> model(_nPI, CONST0);
-      for (periodCnt = 0; periodCnt < SIM_CYCLE && totalCnt < nPatterns; ++periodCnt, ++totalCnt) {
-         for (i = 0; i < _nPI; ++i) {
-            if (vPatternStrings[totalCnt][i] == '0')
-               model[i] &= ~(CONST1 << periodCnt);
-            else // '1'
-               model[i] |=  (CONST1 << periodCnt);
-         }
+   unsigned periodCnt = 0; // SIM_CYCLE, a period
+   unsigned nPatterns = 0;
+   string patternStr;
+
+   CirModel model(_nPI);
+   model.reset();
+
+   while (patternFile >> patternStr) {
+
+      // Check if pattern is valid
+      if (!checkPattern(patternStr)) {
+         cout << (nPatterns - periodCnt) << " patterns simulated.\n";
+         return;
       }
-      // Set model to PIs
-      for (i = 0; i < model.size(); ++i) {
-         pi(i)->setValue(model[i]);
+
+      // Set pattern value to model
+      for (i = 0; i < _nPI; ++i) {
+         if (patternStr[i] == '0')
+            model.add0(i, periodCnt);
+         else // patternStr[i] == '1'
+            model.add1(i, periodCnt);
+      }
+      ++nPatterns;
+      ++periodCnt;
+
+      // Simulate immediately, if 64 patterns are collected.
+      if (periodCnt >= SIM_CYCLE) {
+         for (i = 0; i < model.size(); ++i)
+            pi(i)->setValue(model[i]);
+         simulation();
+         periodCnt = 0;
+         model.reset();
       }
    }
 
-   // Simulate
-   simulation();
+   // If nPatterns % SIM_CYCLE(64) != 0, simulate here one more time
+   if (periodCnt % SIM_CYCLE != 0) {
+      for (i = 0; i < model.size(); ++i)
+         pi(i)->setValue(model[i]);
+      simulation();
+   }
 
    cout << nPatterns << " patterns simulated.\n";
 }
@@ -82,33 +109,27 @@ CirMgr::fileSim(ifstream& patternFile)
 /*   Private member functions about Simulation   */
 /*************************************************/
 bool
-CirMgr::loadPatternFile(ifstream& patternFile, vector<string>& vPatternStrings)
+CirMgr::checkPattern(const string& patternStr)
 {
    // Error Handling:
    //    1. Length of pattern string == nPI
    //    2. Pattern string consists of '0' or '1'.
    // 
-   vPatternStrings.clear();
-   string patternStr;
-   unsigned i;
-   while (patternFile >> patternStr) {
-      // 1. Length check
-      if (patternStr.length() != _nPI) {
-         cerr << "\nError: Pattern(" << patternStr << ") length(" << patternStr.size() 
-              << ") does not match the number of inputs(" << _nPI << ") in a circuit!!\n";
+
+   // 1. Length check
+   if (patternStr.length() != _nPI) {
+      cerr << "\nError: Pattern(" << patternStr << ") length(" << patternStr.size() 
+           << ") does not match the number of inputs(" << _nPI << ") in a circuit!!\n";
+      return false;
+   }
+   // 2. Char check
+   for (unsigned i = 0; i < patternStr.length(); ++i) {
+      if (patternStr[i] != '0' && patternStr[i] != '1') {
+         cerr << "Error: Pattern(" << patternStr << ") contains a non-0/1 character(\'" 
+              << patternStr[i] << "\').\n";
          return false;
       }
-      // 2. Char check
-      for (i = 0; i < patternStr.length(); ++i) {
-         if (patternStr[i] != '0' && patternStr[i] != '1') {
-            cerr << "Error: Pattern(" << patternStr << ") contains a non-0/1 character(\'" 
-                 << patternStr[i] << "\').";
-            return false;
-         }
-      } 
-      // Collect pattern
-      vPatternStrings.emplace_back(patternStr);
-   }
+   } 
    return true;
 }
 

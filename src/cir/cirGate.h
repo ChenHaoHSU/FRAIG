@@ -128,6 +128,8 @@ public:
 
    // Value
    virtual void calValue() = 0;
+   void setPattern1(const unsigned& pos) { _value |=  (CONST1 << pos); }
+   void setPattern0(const unsigned& pos) { _value &= ~(CONST1 << pos); }
 
 private:
    unsigned         _lineNo;

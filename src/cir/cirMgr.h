@@ -20,18 +20,9 @@ using namespace std;
 
 #include "cirDef.h"
 #include "cirGate.h"
+#include "cirModel.h"
 
 extern CirMgr *cirMgr;
-
-enum OptType   // for optimization (4 cases)
-{
-   OPT_CONST0    = 0,
-   OPT_CONST1    = 1,
-   OPT_SAMEFANIN = 2,
-   OPT_INVFANIN  = 3,
-   OPT_NONE      = 4
-};
-
 
 class CirMgr
 {
@@ -92,7 +83,7 @@ private:
    vector<CirGate*>  _vUndefList;      // List of all undefined gates
    vector<CirGate*>  _vGarbageList;    // List of all removed gates
 
-   ofstream           *_simLog;        // Log file of Simulation result
+   ofstream         *_simLog;          // Log file of Simulation result
 
    // Basic access functions
    unsigned   nPi()                 const { return _nPI; }
@@ -111,7 +102,7 @@ private:
    bool parseSymbol(ifstream&);
    bool parseComment(ifstream&);
    void preProcess();
-   CirGate* queryGate(unsigned);
+   CirGate* queryGate(const unsigned);
 
    // Private functions about gate lists
    void buildDfsList();
@@ -122,21 +113,14 @@ private:
    void rec_dfs(CirGate*);
 
    // Private functions for cirSweep and cirOptimize
-   OptType optType(CirGate*) const;
-   void optConst0(CirGate*);
-   void optConst1(CirGate*);
-   void optSameFanin(CirGate*);
-   void optInvFanin(CirGate*);
 
    // Private common functions
    void sortAllGateFanout();
    void mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged);
 
    // Private functions for cirSimulation
-   bool loadPatternFile(ifstream& patternFile, vector<string>& vPatternStrings);
+   bool checkPattern(const string& patternStr);
    void simulation();
-
-
 };
 
 #endif // CIR_MGR_H
