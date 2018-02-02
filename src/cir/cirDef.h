@@ -33,6 +33,7 @@ class SatSolver;
 
 #define BYTE_SIZE  (8)
 #define SIZET_SIZE (sizeof(size_t) * BYTE_SIZE)
+#define NEG        (0x1)
 
 /**********************************************************/
 /*   Constants                                            */

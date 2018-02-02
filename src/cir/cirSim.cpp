@@ -15,6 +15,7 @@
 #include "cirMgr.h"
 #include "cirGate.h"
 #include "util.h"
+#include "myHashMap.h"
 
 using namespace std;
 
@@ -52,7 +53,10 @@ CirMgr::randomSim()
       ++nFail;
    }
 
-   cout << nPatterns << " patterns simulated.\n";
+   sortFecGrps();
+   linkGrp2Gate();
+
+   cout << flush << '\r' << nPatterns << " patterns simulated.\n";
 }
 
 void
@@ -65,15 +69,23 @@ CirMgr::fileSim(ifstream& patternFile)
    string patternStr;
 
    CirModel model(_nPI);
-   model.reset();
 
-   while (patternFile >> patternStr) {
+   while (true) {
+
+      if ( !(patternFile >> patternStr) ) {
+         // simulate here one more time, then break
+         if (periodCnt != 0) {
+            for (i = 0; i < model.size(); ++i)
+               pi(i)->setValue(model[i]);
+            simulation();
+            cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
+            nPatterns += periodCnt;
+            break;
+         }
+      }
 
       // Check if pattern is valid
-      if (!checkPattern(patternStr)) {
-         cout << (nPatterns - periodCnt) << " patterns simulated.\n";
-         return;
-      }
+      if (!checkPattern(patternStr)) break;
 
       // Set pattern value to model
       for (i = 0; i < _nPI; ++i) {
@@ -82,27 +94,24 @@ CirMgr::fileSim(ifstream& patternFile)
          else // patternStr[i] == '1'
             model.add1(i, periodCnt);
       }
-      ++nPatterns;
       ++periodCnt;
 
       // Simulate immediately, if 64 patterns are collected.
-      if (periodCnt >= SIM_CYCLE) {
+      if (periodCnt == SIM_CYCLE) {
          for (i = 0; i < model.size(); ++i)
             pi(i)->setValue(model[i]);
          simulation();
+         cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
+         nPatterns += periodCnt;
          periodCnt = 0;
          model.reset();
       }
    }
 
-   // If nPatterns % SIM_CYCLE(64) != 0, simulate here one more time
-   if (periodCnt % SIM_CYCLE != 0) {
-      for (i = 0; i < model.size(); ++i)
-         pi(i)->setValue(model[i]);
-      simulation();
-   }
+   sortFecGrps();
+   linkGrp2Gate();
 
-   cout << nPatterns << " patterns simulated.\n";
+   cout << flush << '\r' << nPatterns << " patterns simulated.\n";
 }
 
 /*************************************************/
@@ -115,7 +124,6 @@ CirMgr::checkPattern(const string& patternStr)
    //    1. Length of pattern string == nPI
    //    2. Pattern string consists of '0' or '1'.
    // 
-
    // 1. Length check
    if (patternStr.length() != _nPI) {
       cerr << "\nError: Pattern(" << patternStr << ") length(" << patternStr.size() 
@@ -140,7 +148,123 @@ CirMgr::simulation()
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i)
       _vDfsList[i]->calValue();
 
+   // Classify gates into FEC groups
+   if (!_bFirstSim) {
+      initClassifyFecGrp();
+      _bFirstSim = true;
+   }
+   else 
+      classifyFecGrp();
 
-
+   refineFecGrp();
 }
 
+void 
+CirMgr::initClassifyFecGrp()
+{
+   HashMap<CirInitSimValue, CirFecGrp*> hash;
+   CirGate* g = 0;
+   CirFecGrp* queryGrp = 0;
+   hash.init(getHashSize(_vDfsList.size()));
+   for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
+      if (!_vDfsList[i]->isAig() && !_vDfsList[i]->isConst()) continue;
+      g = _vDfsList[i];
+      if (hash.check(CirInitSimValue(g->value()), queryGrp)) {
+         queryGrp->candidates().emplace_back(g, g->value() != queryGrp->value());
+      }
+      else {
+         queryGrp = getNewFecGrp();
+         queryGrp->setValue(g->value());
+         queryGrp->candidates().emplace_back(g);
+         hash.insert(CirInitSimValue(g->value()), queryGrp);
+      }
+   }
+}
+
+void 
+CirMgr::classifyFecGrp()
+{
+   // HashMap<CirSimValue, CirFecGrp*> hash;
+   // CirGate* g = 0;
+   // CirFecGrp* queryGrp = 0;
+   // for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end();) {
+   //    if ((*iter)->isValid()) ++iter;
+   //    else {
+   //       delFecGrp((*iter)); // recycle
+   //       iter = _lFecGrps.erase(iter);
+   //    }
+   // }
+
+   // hash.init(getHashSize(_vDfsList.size()));
+   // for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
+   //    if (!_vDfsList[i]->isAig() && !_vDfsList[i]->isConst()) continue;
+   //    g = _vDfsList[i];
+   //    if (hash.check(CirInitSimValue(g->value()), queryGrp)) {
+   //       queryGrp->candidates().emplace_back(g, g->value() != queryGrp->value());
+   //    }
+   //    else {
+   //       queryGrp = getNewFecGrp();
+   //       queryGrp->setValue(g->value());
+   //       queryGrp->candidates().emplace_back(g);
+   //       hash.insert(CirInitSimValue(g->value()), queryGrp);
+   //    }
+   // }
+   // refineFecGrp();
+   
+}
+
+void 
+CirMgr::refineFecGrp()
+{
+   // Remove invalid FEC groups (i.e. size < 2)
+   // 
+   CirFecGrp* grp = 0;
+   for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end();) {
+      grp = *iter;
+      if (grp->isValid()) ++iter;
+      else {
+         assert(grp->size() == 1);
+         (*grp)[0].gate()->setGrp(0);
+         delFecGrp(grp); // recycle
+         iter = _lFecGrps.erase(iter);
+      }
+   }
+}
+
+void 
+CirMgr::sortFecGrps()
+{
+   for (auto& grp : _lFecGrps)
+      grp->sort();
+}
+
+void 
+CirMgr::linkGrp2Gate()
+{  
+   int i, n;
+   for (auto& grp : _lFecGrps)
+      for (i = 0, n = grp->size(); i < n; ++i)
+         (*grp)[i].gate()->setGrp(grp);
+}
+
+void 
+CirMgr::delFecGrp(CirFecGrp* g)
+{
+   _vGarbageFecGrps.push_back(g);
+}
+
+CirFecGrp* 
+CirMgr::getNewFecGrp()
+{
+   CirFecGrp* ret = 0;
+   if (!_vGarbageFecGrps.empty()) {
+      ret = _vGarbageFecGrps.back();
+      ret->reset();
+      _vGarbageFecGrps.pop_back();
+   } 
+   else {
+      ret = new CirFecGrp;
+   }
+   _lFecGrps.push_back(ret);
+   return ret;
+}

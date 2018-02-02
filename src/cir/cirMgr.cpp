@@ -263,6 +263,17 @@ CirMgr::printFloatGates() const
 void
 CirMgr::printFECPairs() const
 {
+   int cnt = 0;
+   int i, n;
+   for (auto& grp : _lFecGrps) {
+      assert(grp->isValid());
+      cout << "[" << cnt << "]";
+      for (i = 0, n = grp->size(); i < n; ++i) {
+         cout << ((*grp)[i].isInv() ^ (*grp)[0].isInv() ? " !" : " ")
+              << (*grp)[i].gate()->var();
+      }
+      cout << endl;
+   }
 }
 
 void
@@ -386,21 +397,26 @@ void
 CirMgr::delGate(CirGate* g)
 {
    // assert(!g);
-   _vGarbageList.push_back(g);
+   _vGarbageGates.push_back(g);
    _vAllGates[g->var()] = 0;
 }
 
 void 
 CirMgr::clear()
 {
+   // Delete gates
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i) {
       if (_vAllGates[i])
          delete _vAllGates[i];
-      _vAllGates[i] = 0;
    }
-   for (unsigned i = 0, n = _vGarbageList.size(); i < n; ++i) {
-      if (_vGarbageList[i])
-         delete _vGarbageList[i];
-      _vGarbageList[i] = 0;
+   for (unsigned i = 0, n = _vGarbageGates.size(); i < n; ++i) {
+      if (_vGarbageGates[i])
+         delete _vGarbageGates[i];
+   }
+   // Delete FEC groups
+   for (auto& grp : _lFecGrps)
+      delete grp;
+   for (unsigned i = 0, n = _vGarbageFecGrps.size(); i < n; ++i) {
+      delete _vGarbageFecGrps[i];
    }
 }

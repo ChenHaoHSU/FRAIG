@@ -44,15 +44,15 @@ CirGate::reportGate() const
    infoStr += ", line " + to_string(_lineNo);
 
    // FEC string
-   string fecStr = "FECs:";
+   string fecStr = "FECs:"   + this->fecStr();
 
    // Value string
-   string valStr = "Value: " + valueStr();
+   string valStr = "Value: " + this->valueStr();
 
    cout << "================================================================================\n";
    cout << "= " << infoStr << endl;
-   cout << "= " << "FECs:" << endl;
-   cout << "= " << "Value: " << valueStr() << endl;
+   cout << "= " << fecStr  << endl;
+   cout << "= " << valStr  << endl;
    cout << "================================================================================\n";
 }
 
@@ -107,6 +107,12 @@ CirGate::rec_rptFanout(const CirGate* g, bool inv, int level, int nSpace) const
 }
 
 string 
+CirGate::fecStr() const
+{
+   return "";
+}
+
+string 
 CirGate::valueStr() const
 {
    static const unsigned nBit     = 64;
@@ -127,16 +133,13 @@ CirGate::valueStr() const
 /**************************************/
 /*   class CirGate sorting functions  */
 /**************************************/
-bool 
-CirGate::fanoutSort(const CirGateV& g1, const CirGateV& g2)
-{
-   return g1.gate()->var() < g2.gate()->var();
-}
-
 void 
 CirGate::sortFanout() 
 { 
-   sort(_fanouts.begin(), _fanouts.end(), fanoutSort); 
+   sort(_fanouts.begin(), _fanouts.end(), 
+        [] (const CirGateV& g1, const CirGateV& g2) {
+           return g1.gate()->var() < g2.gate()->var();
+        });
 }
 
 /*******************************************/

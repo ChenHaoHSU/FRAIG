@@ -26,29 +26,30 @@ class CirPoGate;
 class CirAigGate;
 class CirConstGate;
 
+class CirFecGrp;
+
 //------------------------------------------------------------------------
 //   Define classes
 //------------------------------------------------------------------------
 class CirGateV
 {
 public:
-  #define NEG 0x1
-  CirGateV(CirGate* g = 0, size_t phase = 0):  _gateV(size_t(g) + phase) {}
-  ~CirGateV() {}
+   CirGateV(CirGate* g = 0, size_t phase = 0):  _gateV(size_t(g) + phase) {}
+   ~CirGateV() {}
 
-  CirGate* gate()                          const { return (CirGate*)(_gateV & ~size_t(NEG)); }
-  bool     isInv()                         const { return (_gateV & NEG);                    }
-  bool     null()                          const { return _gateV == 0;                       }
-  size_t   gateV()                         const { return _gateV;                            }
-  void     setGateV(CirGate* g, bool phase)      { _gateV = size_t(g) + size_t(phase);       }
+   CirGate* gate()                           const { return (CirGate*)(_gateV & ~size_t(NEG)); }
+   bool     isInv()                          const { return (_gateV & NEG);                    }
+   bool     null()                           const { return _gateV == 0;                       }
+   size_t   gateV()                          const { return _gateV;                            }
+   void     setGateV(CirGate* g, bool phase)       { _gateV = size_t(g) + size_t(phase);       }
 
-  // Operator overload
-  bool   operator == (const CirGateV& c)   const { return _gateV == c.gateV(); }
-  size_t operator +  (const CirGateV& c)   const { return _gateV + c.gateV();  }
-  size_t operator ^  (const CirGateV& c)   const { return _gateV ^ c.gateV();  }
+   // Operator overload
+   bool   operator == (const CirGateV& c)    const { return _gateV == c.gateV(); }
+   size_t operator +  (const CirGateV& c)    const { return _gateV +  c.gateV(); }
+   size_t operator ^  (const CirGateV& c)    const { return _gateV ^  c.gateV(); }
 
 private:
-  size_t _gateV;
+   size_t _gateV;
 };
 
 
@@ -56,7 +57,7 @@ class CirGate
 {
 public:
    CirGate(unsigned l = 0, unsigned v = 0)
-      : _lineNo(l), _var(v), _ref(0), _value(0) {}
+      : _lineNo(l), _var(v), _ref(0), _grp(0), _value(0) {}
    virtual ~CirGate() {}
 
    // Basic access methods
@@ -64,11 +65,12 @@ public:
    virtual string   typeStr()      const = 0;
    virtual string   symbol()       const = 0;
 
-   unsigned getLineNo()    const { return _lineNo;               }
-   unsigned lineNo()       const { return _lineNo;               }
-   unsigned var()          const { return _var;                  }
-   unsigned ref()          const { return _ref;                  }
-   size_t   value()        const { return _value;                }
+   unsigned   getLineNo()  const { return _lineNo;               }
+   unsigned   lineNo()     const { return _lineNo;               }
+   unsigned   var()        const { return _var;                  }
+   unsigned   ref()        const { return _ref;                  }
+   size_t     value()      const { return _value;                }
+   CirFecGrp* grp()        const { return _grp;                  }
 
    // Fanin
    CirGateV fanin0()       const { return _fanin0;               }
@@ -101,6 +103,7 @@ public:
    void setVar(const unsigned& v)       { _var = v;                           }
    void setValue(const size_t& v)       { _value = v;                         }
    void setRef(const unsigned& r) const { _ref = r; /* const method orz... */ }
+   void setGrp(CirFecGrp* g)            { _grp = g;                           }
    void setFanin0(const CirGateV& g)    { _fanin0 = g;                        } 
    void setFanin1(const CirGateV& g)    { _fanin1 = g;                        } 
    void addFanout(const CirGateV& g)    { _fanouts.push_back(g);              } 
@@ -109,8 +112,7 @@ public:
    void addFanout(CirGate* g, size_t i) { _fanouts.push_back(CirGateV(g, i)); } 
 
    // Fanout sorting
-   static bool fanoutSort(const CirGateV& g1, const CirGateV& g2);
-   void        sortFanout();
+   void sortFanout();
 
    // Printing functions
    virtual void printGate() const = 0;
@@ -120,6 +122,7 @@ public:
    void   rec_rptFanin(const CirGate*, bool, int, int)  const;
    void   rec_rptFanout(const CirGate*, bool, int, int) const;
    string valueStr()                                    const;
+   string fecStr()                                      const;
 
    // Fanin Fanout operation
    bool replaceFanin(CirGate* newFanin, bool newInv, CirGate* oldFanin);
@@ -135,6 +138,7 @@ private:
    unsigned         _lineNo;
    unsigned         _var;
    mutable unsigned _ref;
+   CirFecGrp*       _grp;
 
 protected:
    CirGateV         _fanin0;

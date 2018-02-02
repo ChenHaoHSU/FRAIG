@@ -10,24 +10,26 @@
 #define CIR_MGR_H
 
 #include <vector>
+#include <list>
 #include <string>
 #include <fstream>
 #include <iostream>
 
-using namespace std;
-
-// TODO: Feel free to define your own classes, variables, or functions.
-
 #include "cirDef.h"
 #include "cirGate.h"
 #include "cirModel.h"
+#include "cirFecGrp.h"
+#include "cirSimValue.h"
 
+using namespace std;
+
+// TODO: Feel free to define your own classes, variables, or functions.
 extern CirMgr *cirMgr;
 
 class CirMgr
 {
 public:
-   CirMgr() {}
+   CirMgr() : _bFirstSim(false) {}
    ~CirMgr() { clear(); } 
 
    // Access functions
@@ -67,23 +69,30 @@ public:
 
 private:
    // Basic Info (M I L O A)
-   unsigned          _maxIdx;        // M
-   unsigned          _nPI;           // I
-   unsigned          _nLATCH;        // L 
-   unsigned          _nPO;           // O
-   unsigned          _nAIG;          // A
-   unsigned          _nDfsAIG;       // number of Aig in dfs list
+   unsigned           _maxIdx;          // M (Max gate index)
+   unsigned           _nPI;             // I (Number of PIs)
+   unsigned           _nLATCH;          // L (Number of LATCHes)
+   unsigned           _nPO;             // O (Number of POs)
+   unsigned           _nAIG;            // A (Number of AIGs)
+   unsigned           _nDfsAIG;         // number of Aig in dfs list
 
    // Gate Lists
-   vector<CirGate*>  _vPi;             // List of all PIs
-   vector<CirGate*>  _vAllGates;       // List of all gates!! Can be access by idx!!
-   vector<CirGate*>  _vDfsList;        // Depth-Fisrt Search List
-   vector<CirGate*>  _vFloatingList;   // List of all floating gates
-   vector<CirGate*>  _vUnusedList;     // List of all unused gates
-   vector<CirGate*>  _vUndefList;      // List of all undefined gates
-   vector<CirGate*>  _vGarbageList;    // List of all removed gates
+   vector<CirGate*>   _vPi;             // List of all PIs
+   vector<CirGate*>   _vAllGates;       // List of all gates!! Can be access by idx!!
+   vector<CirGate*>   _vDfsList;        // Depth-Fisrt Search List
+   vector<CirGate*>   _vFloatingList;   // List of all floating gates
+   vector<CirGate*>   _vUnusedList;     // List of all unused gates
+   vector<CirGate*>   _vUndefList;      // List of all undefined gates
+   vector<CirGate*>   _vGarbageGates;   // List of all removed gates
 
-   ofstream         *_simLog;          // Log file of Simulation result
+   // Sim log file (Do not remove it!!)
+   ofstream          *_simLog;          // Log file of Simulation result
+
+   // Simulation info
+   bool               _bFirstSim;       // Is the FEC group be initialized ? (i.e. ever simulated?)
+   list<CirFecGrp*>   _lFecGrps;        // List of all FEC groups
+   vector<CirFecGrp*> _vGarbageFecGrps; // List of all removed FEC groups
+
 
    // Basic access functions
    unsigned   nPi()                 const { return _nPI; }
@@ -121,6 +130,13 @@ private:
    // Private functions for cirSimulation
    bool checkPattern(const string& patternStr);
    void simulation();
+   void initClassifyFecGrp();
+   void classifyFecGrp();
+   void refineFecGrp();
+   void delFecGrp(CirFecGrp*);
+   void sortFecGrps();
+   void linkGrp2Gate();
+   CirFecGrp* getNewFecGrp();
 };
 
 #endif // CIR_MGR_H
