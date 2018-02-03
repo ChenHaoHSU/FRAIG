@@ -267,7 +267,7 @@ CirMgr::printFECPairs() const
    int i, n;
    for (auto& grp : _lFecGrps) {
       assert(grp->isValid());
-      cout << "[" << cnt << "]";
+      cout << "[" << cnt++ << "]";
       for (i = 0, n = grp->size(); i < n; ++i) {
          cout << ((*grp)[i].isInv() ^ (*grp)[0].isInv() ? " !" : " ")
               << (*grp)[i].gate()->var();
