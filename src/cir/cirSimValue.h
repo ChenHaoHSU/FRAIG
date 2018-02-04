@@ -14,6 +14,7 @@ using namespace std;
 class CirInitSimValue;
 class CirSimValue;
 
+
 class CirInitSimValue
 {
 public:
@@ -31,6 +32,7 @@ public:
 private:
    size_t _value;
 };
+
 
 class CirSimValue
 {

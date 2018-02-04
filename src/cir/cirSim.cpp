@@ -36,11 +36,12 @@ using namespace std;
 void
 CirMgr::randomSim()
 {
-   unsigned max_fail  = 200;
+   unsigned max_fail  = 3 + 3 * log10(_vDfsList.size());
 
    unsigned i         = 0;
    unsigned nPatterns = 0;
    unsigned nFail     = 0; // fail to make #fecGrps change
+   unsigned preNum    = 0; // previous #FEC group
 
    CirModel model(_nPI);
 
@@ -51,7 +52,9 @@ CirMgr::randomSim()
       simulation();
       cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
       nPatterns += SIM_CYCLE;
-      ++nFail;
+
+      nFail = (preNum == _lFecGrps.size() ? (nFail + 1) : 0);
+      preNum = _lFecGrps.size();
    }
 
    sortFecGrps();
@@ -161,15 +164,17 @@ CirMgr::simulation()
 void 
 CirMgr::initClassifyFecGrp()
 {
-   CirGate*   g        = 0;
+   CirGate* g = 0;
    CirFecGrp* queryGrp = 0;
    HashMap<CirInitSimValue, CirFecGrp*> hash;
    hash.init(getHashSize(_vDfsList.size()));
-   // Const gate
+
+   // Const gate (must be inside whether it is in dfsList or not)
    queryGrp = getNewFecGrp();
    queryGrp->setValue(constGate()->value());
    queryGrp->candidates().emplace_back(constGate());
    hash.insert(CirInitSimValue(constGate()->value()), queryGrp);
+   
    // Aig gates
    for (unsigned i = 0, n = _vDfsList.size(); i < n && (g = _vDfsList[i]); ++i) {
       if (!g->isAig()) continue;
@@ -184,32 +189,35 @@ CirMgr::initClassifyFecGrp()
       }
    }
 
-   for (auto iter = hash.begin(); iter != hash.end(); ++iter) {
+   // Collect valid FEc group from hash
+   for (auto iter = hash.begin(); iter != hash.end(); ++iter)
       if ((*iter).second->isValid())
          _lFecGrps.push_back((*iter).second);
-   }
-   refineFecGrp();
+
+   sweepInvalidFecGrp();
 }
 
 void 
 CirMgr::classifyFecGrp()
 {
    unsigned i, n;
-   bool       firstInv = false;
-   size_t     oriValue = 0;
-   size_t     value    = 0;
-   CirGate*   g        = 0;
-   CirFecGrp* queryGrp = 0;
+   size_t value, oriValue;
+   CirGate* g;
+   CirFecGrp* queryGrp;
    list<CirFecGrp*> lCandGrp;
+
    for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end();) {
+
       CirFecGrp& oriGrp = (*(*iter));
       HashMap<CirSimValue, CirFecGrp*> hash;
       hash.init(getHashSize(oriGrp.size()));
-      firstInv = oriGrp[0].isInv();
+
       for (i = 0, n = oriGrp.size(); i < n; ++i) {
-         g        = oriGrp[i].gate();
+
+         g = oriGrp.candGate(i);
          oriValue = g->value();
-         value    = oriGrp[i].isInv() ^ firstInv ? ~oriValue : oriValue;
+         value = oriGrp.candInv(i) ? ~oriValue : oriValue;
+
          if (hash.check(CirSimValue(value), queryGrp)) {
             queryGrp->candidates().emplace_back(g, oriValue != queryGrp->value());
          }
@@ -217,7 +225,7 @@ CirMgr::classifyFecGrp()
             queryGrp = getNewFecGrp();
             queryGrp->setValue(g->value());
             queryGrp->candidates().emplace_back(g);
-            hash.insert(CirSimValue(oriValue, oriGrp[i].isInv()), queryGrp);
+            hash.insert(CirSimValue(oriValue, oriGrp.candInv(i)), queryGrp);
             lCandGrp.push_back(queryGrp);
          }
       }
@@ -227,16 +235,16 @@ CirMgr::classifyFecGrp()
       iter = _lFecGrps.erase(iter);
 
       // Collect valid FEC groups (i.e. size > 1)
-      for (auto iter = lCandGrp.begin(); iter != lCandGrp.end();) {
-         if ((*iter)->isValid())
-            _lFecGrps.push_front((*iter));
-         iter = lCandGrp.erase(iter);
+      for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end();) {
+         if ((*iter2)->isValid())
+            _lFecGrps.push_front((*iter2));
+         iter2 = lCandGrp.erase(iter2);
       }
    }
 }
 
 void 
-CirMgr::refineFecGrp()
+CirMgr::sweepInvalidFecGrp()
 {
    // Remove invalid FEC groups (i.e. size < 2)
    for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end();) {
@@ -244,7 +252,6 @@ CirMgr::refineFecGrp()
       if (grp.isValid()) ++iter;
       else {
          assert(grp.size() == 1);
-         grp[0].gate()->setGrp(0);
          delFecGrp((*iter)); // recycle
          iter = _lFecGrps.erase(iter);
       }
@@ -259,7 +266,7 @@ CirMgr::sortFecGrps()
 
    _lFecGrps.sort(
       [] (const CirFecGrp* g1, const CirFecGrp* g2) {
-         return (*g1)[0].gate()->var() < (*g2)[0].gate()->var();
+         return g1->repGate()->var() < g2->repGate()->var();
       });
 }
 
@@ -272,7 +279,7 @@ CirMgr::linkGrp2Gate()
          _vAllGates[i]->setGrp(0);
    for (auto& grp : _lFecGrps)
       for (i = 0, n = grp->size(); i < n; ++i)
-         (*grp)[i].gate()->setGrp(grp);
+         grp->candGate(i)->setGrp(grp);
 }
 
 void 
@@ -289,7 +296,7 @@ CirMgr::getNewFecGrp()
       ret = _vGarbageFecGrps.back();
       ret->reset();
       _vGarbageFecGrps.pop_back();
-   } 
+   }
    else {
       ret = new CirFecGrp;
    }

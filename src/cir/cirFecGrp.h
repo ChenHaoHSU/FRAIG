@@ -20,24 +20,39 @@ class CirFecGrp
 {
 public:
    CirFecGrp(size_t v = 0) : _value(v) {}
-	~CirFecGrp() {}
+   ~CirFecGrp() {}
+
+   size_t   value()   const { return _value;                 }
+   unsigned size()    const { return _candidates.size();     }
+   bool     isValid() const { return _candidates.size() > 1; }
+
+   void setValue(size_t v)      { _value = v;               }
+   void push(const CirGateV& c) { _candidates.push_back(c); }
 
    vector<CirGateV>& candidates() { return _candidates; }
 
-   const CirGateV operator[] (size_t i) const { return _candidates[i]; }
-   CirGateV& operator[] (size_t i) { return _candidates[i]; }
+   // Candidates access functions
+   const CirGateV& cand(const unsigned i)     const { return _candidates[i];                                  }
+   CirGate*        candGate(const unsigned i) const { return _candidates[i].gate();                           }
+   bool            candInv(const unsigned i)  const { return _candidates[i].isInv() ^ _candidates[0].isInv(); }
 
-   void setValue(size_t v) { _value = v; }
-   void reset() { _candidates.resize(0); _value = 0; _candidates.shrink_to_fit(); }
-   void push(const CirGateV& c) { _candidates.push_back(c); }
-   size_t value() const { return _value; }
-   unsigned size() const { return _candidates.size(); }
-   bool isValid() const { return _candidates.size() > 1; }
+   // Representation of this group access functions
+   const CirGateV& rep()     const { return _candidates[0];                                  }
+   CirGate*        repGate() const { return _candidates[0].gate();                           }
+   bool            repInv()  const { return _candidates[0].isInv() ^ _candidates[0].isInv(); }
+
+   // Sort by var in incresing order
    void sort() {
       std::sort(_candidates.begin(), _candidates.end(), 
          [] (const CirGateV& g1, const CirGateV& g2) {
                return g1.gate()->var() < g2.gate()->var();
          });
+   }
+
+   void reset() { 
+      _candidates.resize(0); 
+      _value = 0; 
+      _candidates.shrink_to_fit(); 
    }
 
 private:

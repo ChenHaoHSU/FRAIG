@@ -263,15 +263,14 @@ CirMgr::printFloatGates() const
 void
 CirMgr::printFECPairs() const
 {
-   int cnt = 0;
-   int i, n;
+   unsigned i, n;
+   unsigned cnt = 0;
    for (auto& grp : _lFecGrps) {
       assert(grp->isValid());
       cout << "[" << cnt++ << "]";
-      for (i = 0, n = grp->size(); i < n; ++i) {
-         cout << ((*grp)[i].isInv() ^ (*grp)[0].isInv() ? " !" : " ")
-              << (*grp)[i].gate()->var();
-      }
+      for (i = 0, n = grp->size(); i < n; ++i)
+         cout << (grp->candInv(i) ? " !" : " ") 
+              << grp->candGate(i)->var();
       cout << endl;
    }
 }
@@ -294,9 +293,9 @@ CirMgr::writeAag(ostream& outfile) const
    for (i = 0, n = _vDfsList.size(); i < n; ++i)
       if (_vDfsList[i]->isAig())
          outfile << LIT(_vDfsList[i]->var(), 0)     << " "
-                 << LIT(_vDfsList[i]->fanin0_var(), 
+                 << LIT(_vDfsList[i]->fanin0_var(),
                         _vDfsList[i]->fanin0_inv()) << " "
-                 << LIT(_vDfsList[i]->fanin1_var(), 
+                 << LIT(_vDfsList[i]->fanin1_var(),
                         _vDfsList[i]->fanin1_inv()) << endl;
    // Symbols
    for (i = 0; i < _nPI; ++i)
@@ -405,18 +404,20 @@ void
 CirMgr::clear()
 {
    // Delete gates
-   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i) {
+   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
       if (_vAllGates[i])
          delete _vAllGates[i];
-   }
-   for (unsigned i = 0, n = _vGarbageGates.size(); i < n; ++i) {
+   for (unsigned i = 0, n = _vGarbageGates.size(); i < n; ++i)
       if (_vGarbageGates[i])
          delete _vGarbageGates[i];
-   }
+   _vAllGates.clear();
+   _vGarbageGates.clear();
+
    // Delete FEC groups
    for (auto& grp : _lFecGrps)
       delete grp;
-   for (unsigned i = 0, n = _vGarbageFecGrps.size(); i < n; ++i) {
-      delete _vGarbageFecGrps[i];
-   }
+   for (auto& grp : _vGarbageFecGrps)
+      delete grp;
+   _lFecGrps.clear();
+   _vGarbageFecGrps.clear();
 }

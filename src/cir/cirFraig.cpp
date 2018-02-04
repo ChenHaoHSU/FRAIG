@@ -51,9 +51,6 @@ CirMgr::strash()
       keyM.setGate(_vDfsList[i]);
       if (hashM.check(keyM, valueM)) {
          fprintf(stdout, "Strashing: %d merging %d...\n", valueM->var(), _vDfsList[i]->var());
-         // cout << "Strashing: " << valueM->var() 
-         //      << " merging "   << _vDfsList[i]->var() 
-         //      << "...\n";
          mergeGate(valueM, _vDfsList[i], false);
          delGate(_vDfsList[i]);
       }

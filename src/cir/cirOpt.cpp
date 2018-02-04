@@ -63,13 +63,11 @@ CirMgr::sweep()
                g->fanin0_gate()->rmFanout(g);
                g->fanin1_gate()->rmFanout(g);
                fprintf(stdout, "Sweeping: AIG(%d) removed...\n", g->var());
-               // cout << "Sweeping: AIG(" << g->var() << ") removed...\n";
                delGate(g);
             }
             // sweep UNDEF
             else if (g->isUndef()) {
                fprintf(stdout, "Sweeping: UNDEF(%d) removed...\n", g->var());
-               // cout << "Sweeping: UNDEF(" << g->var() << ") removed...\n";
                delGate(g);
             }
             else {}
@@ -106,12 +104,14 @@ CirMgr::optimize()
       //    Case4: Two fanins are the same (var) but in inverting phase
       // 
       if ( g->fanin0_gate() == constGate() ) {
-         if ( !g->fanin0_inv() ) { // case1
+         if ( !g->fanin0_inv() ) { 
+            // case1
             mergeGate(constGate(), g, false);
             cout << "Simplifying: " << constGate()->var() 
                  << " merging " << g->var() << "...\n";
          }
-         else{ // case2
+         else{
+            // case2
             mergeGate(g->fanin1_gate(), g, g->fanin1_inv());
             cout << "Simplifying: " << g->fanin1_gate()->var() 
                  << " merging " << (g->fanin1_inv() ? "!" : "") 
@@ -119,12 +119,14 @@ CirMgr::optimize()
          }
       }
       else if ( g->fanin1_gate() == constGate() ) {
-         if ( !g->fanin1_inv() ) { // case1
+         if ( !g->fanin1_inv() ) { 
+            // case1
             mergeGate(constGate(), g, false);
             cout << "Simplifying: " << constGate()->var() 
                  << " merging " << g->var() << "...\n";
          }
-         else{ // case2
+         else{ 
+            // case2
             mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
             cout << "Simplifying: " << g->fanin0_gate()->var() 
                  << " merging " << (g->fanin0_inv() ? "!" : "") 
@@ -132,13 +134,15 @@ CirMgr::optimize()
          }
       }
       else if ( g->fanin0_gate() == g->fanin1_gate() ) {
-         if ( g->fanin0_inv()  == g->fanin1_inv() ) { // case3
+         if ( g->fanin0_inv()  == g->fanin1_inv() ) { 
+            // case3
             mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
             cout << "Simplifying: " << g->fanin0_gate()->var() 
                  << " merging " << (g->fanin0_inv() ? "!" : "") 
                  << g->var() << "...\n";
          }
-         else { // case4
+         else { 
+            // case4
             mergeGate(constGate(), g, false);
             cout << "Simplifying: " << constGate()->var() 
                  << " merging " << g->var() << "...\n";

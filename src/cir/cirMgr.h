@@ -91,7 +91,7 @@ private:
    // Simulation info
    bool               _bFirstSim;       // Is the FEC group be initialized ? (i.e. ever simulated?)
    list<CirFecGrp*>   _lFecGrps;        // List of all FEC groups
-   vector<CirFecGrp*> _vGarbageFecGrps; // List of all removed FEC groups
+   list<CirFecGrp*>   _vGarbageFecGrps; // List of all removed FEC groups
 
 
    // Basic access functions
@@ -132,7 +132,7 @@ private:
    void simulation();
    void initClassifyFecGrp();
    void classifyFecGrp();
-   void refineFecGrp();
+   void sweepInvalidFecGrp();
    void delFecGrp(CirFecGrp*);
    void sortFecGrps();
    void linkGrp2Gate();
