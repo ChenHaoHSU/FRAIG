@@ -81,7 +81,6 @@ CirMgr::fileSim(ifstream& patternFile)
             simulation();
             cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
             nPatterns += periodCnt;
-            cout << nPatterns << " " << periodCnt << endl;
          }
          break;
       }
@@ -147,9 +146,8 @@ void
 CirMgr::simulation() 
 {
    // Calculate sim value
-   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
-      if (_vAllGates[i])
-         _vAllGates[i]->calValue();
+   for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i)
+      _vDfsList[i]->calValue();
 
    // Classify gates into FEC groups
    if (!_bFirstSim) {
@@ -158,8 +156,6 @@ CirMgr::simulation()
    }
    else 
       classifyFecGrp();
-
-   refineFecGrp();
 }
 
 void 
@@ -175,8 +171,7 @@ CirMgr::initClassifyFecGrp()
    queryGrp->candidates().emplace_back(constGate());
    hash.insert(CirInitSimValue(constGate()->value()), queryGrp);
    // Aig gates
-   for (unsigned i = 0, n = _vAllGates.size(); i < n && (g = _vAllGates[i]); ++i) {
-      if (!g) continue;
+   for (unsigned i = 0, n = _vDfsList.size(); i < n && (g = _vDfsList[i]); ++i) {
       if (!g->isAig()) continue;
       if (hash.check(CirInitSimValue(g->value()), queryGrp)) {
          queryGrp->candidates().emplace_back(g, g->value() != queryGrp->value());
@@ -193,7 +188,7 @@ CirMgr::initClassifyFecGrp()
       if ((*iter).second->isValid())
          _lFecGrps.push_back((*iter).second);
    }
-
+   refineFecGrp();
 }
 
 void 
@@ -232,10 +227,11 @@ CirMgr::classifyFecGrp()
       iter = _lFecGrps.erase(iter);
 
       // Collect valid FEC groups (i.e. size > 1)
-      for (auto& grp : lCandGrp)
-         if (grp->isValid())
-            _lFecGrps.push_front(grp);
-      lCandGrp.clear();
+      for (auto iter = lCandGrp.begin(); iter != lCandGrp.end();) {
+         if ((*iter)->isValid())
+            _lFecGrps.push_front((*iter));
+         iter = lCandGrp.erase(iter);
+      }
    }
 }
 
