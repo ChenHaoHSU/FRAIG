@@ -28,7 +28,7 @@ public:
    CirGateV& operator[] (size_t i) { return _candidates[i]; }
 
    void setValue(size_t v) { _value = v; }
-   void reset() { _candidates.resize(0); _value = 0; }
+   void reset() { _candidates.resize(0); _value = 0; _candidates.shrink_to_fit(); }
    void push(const CirGateV& c) { _candidates.push_back(c); }
    size_t value() const { return _value; }
    unsigned size() const { return _candidates.size(); }
