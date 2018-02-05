@@ -303,17 +303,17 @@ CirMgr::writeSimLog(const unsigned num) const
 void 
 CirMgr::delFecGrp(CirFecGrp* g)
 {
-   _vGarbageFecGrps.push_back(g);
+   _lGarbageFecGrps.push_back(g);
 }
 
 CirFecGrp* 
 CirMgr::getNewFecGrp()
 {
    CirFecGrp* ret = 0;
-   if (!_vGarbageFecGrps.empty()) {
-      ret = _vGarbageFecGrps.back();
+   if (!_lGarbageFecGrps.empty()) {
+      ret = _lGarbageFecGrps.back();
       ret->reset();
-      _vGarbageFecGrps.pop_back();
+      _lGarbageFecGrps.pop_back();
    }
    else {
       ret = new CirFecGrp;

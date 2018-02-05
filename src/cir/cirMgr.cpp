@@ -396,7 +396,7 @@ void
 CirMgr::delGate(CirGate* g)
 {
    // assert(!g);
-   _vGarbageGates.push_back(g);
+   _lGarbageGates.push_back(g);
    _vAllGates[g->var()] = 0;
 }
 
@@ -407,17 +407,16 @@ CirMgr::clear()
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
       if (_vAllGates[i])
          delete _vAllGates[i];
-   for (unsigned i = 0, n = _vGarbageGates.size(); i < n; ++i)
-      if (_vGarbageGates[i])
-         delete _vGarbageGates[i];
+   for (auto& grp : _lGarbageGates)
+      delete grp;
    _vAllGates.clear();
-   _vGarbageGates.clear();
+   _lGarbageGates.clear();
 
    // Delete FEC groups
    for (auto& grp : _lFecGrps)
       delete grp;
-   for (auto& grp : _vGarbageFecGrps)
+   for (auto& grp : _lGarbageFecGrps)
       delete grp;
    _lFecGrps.clear();
-   _vGarbageFecGrps.clear();
+   _lGarbageFecGrps.clear();
 }

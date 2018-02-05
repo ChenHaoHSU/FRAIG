@@ -30,7 +30,7 @@ public:
       // return _gate->fanin0() + _gate->fanin1();
    }
 
-   /* Key comparison function */
+   /* Key compare function */
    bool operator == (const CirStrashS& c) const {
       if (_gate->fanin0() == c.gate()->fanin0())
          return (_gate->fanin1() == c.gate()->fanin1());
@@ -67,7 +67,7 @@ public:
       // return _gate->fanin0() + _gate->fanin1();
    }
 
-   /* Key comparison function */
+   /* Key compare function */
    bool operator == (const CirStrashM& c) const { 
       if (_gate->fanin0() == c.gate()->fanin0())
          return (_gate->fanin1() == c.gate()->fanin1());
