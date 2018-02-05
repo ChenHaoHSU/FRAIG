@@ -83,9 +83,9 @@ public:
    unsigned fanin1_var()   const { return _fanin1.gate()->var(); }
 
    // Fanouts
-   CirGateV fanout(const unsigned& i)      const { assert(i < _fanouts.size()); return _fanouts[i];         }
-   CirGate* fanout_gate(const unsigned& i) const { assert(i < _fanouts.size()); return _fanouts[i].gate();  }
-   bool     fanout_inv(const unsigned& i)  const { assert(i < _fanouts.size()); return _fanouts[i].isInv(); }
+   CirGateV fanout(const unsigned i)      const { assert(i < _fanouts.size()); return _fanouts[i];         }
+   CirGate* fanout_gate(const unsigned i) const { assert(i < _fanouts.size()); return _fanouts[i].gate();  }
+   bool     fanout_inv(const unsigned i)  const { assert(i < _fanouts.size()); return _fanouts[i].isInv(); }
 
    unsigned nFanouts()     const { return _fanouts.size();  }
    unsigned bFanoutEmpty() const { return _fanouts.empty(); }
@@ -99,10 +99,10 @@ public:
    virtual bool isFloating() const = 0;
 
    // Basic setting methods
-   void setLineNo(const unsigned& l)    { _lineNo = l;                        }
-   void setVar(const unsigned& v)       { _var = v;                           }
-   void setValue(const size_t& v)       { _value = v;                         }
-   void setRef(const unsigned& r) const { _ref = r; /* const method orz... */ }
+   void setLineNo(const unsigned l)     { _lineNo = l;                        }
+   void setVar(const unsigned v)        { _var = v;                           }
+   void setValue(const size_t v)        { _value = v;                         }
+   void setRef(const unsigned r)  const { _ref = r; /* const method orz... */ }
    void setGrp(CirFecGrp* g)            { _grp = g;                           }
    void setFanin0(const CirGateV& g)    { _fanin0 = g;                        } 
    void setFanin1(const CirGateV& g)    { _fanin1 = g;                        } 
@@ -131,8 +131,9 @@ public:
 
    // Value
    virtual void calValue() = 0;
-   void setPattern1(const unsigned& pos) { _value |=  (CONST1 << pos); }
-   void setPattern0(const unsigned& pos) { _value &= ~(CONST1 << pos); }
+   void setPattern1(const unsigned pos)       { _value |=  (CONST1 << pos);      }
+   void setPattern0(const unsigned pos)       { _value &= ~(CONST1 << pos);      }
+   size_t value(const unsigned pos)     const { return CONST1 & (_value >> pos); }
 
 private:
    unsigned         _lineNo;

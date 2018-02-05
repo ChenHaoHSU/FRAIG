@@ -50,6 +50,7 @@ CirMgr::randomSim()
       for (i = 0; i < model.size(); ++i)
          pi(i)->setValue(model[i]);
       simulation();
+      writeSimLog(SIM_CYCLE);
       cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
       nPatterns += SIM_CYCLE;
 
@@ -82,6 +83,7 @@ CirMgr::fileSim(ifstream& patternFile)
             for (i = 0; i < model.size(); ++i)
                pi(i)->setValue(model[i]);
             simulation();
+            writeSimLog(periodCnt);
             cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
             nPatterns += periodCnt;
          }
@@ -105,6 +107,7 @@ CirMgr::fileSim(ifstream& patternFile)
          for (i = 0; i < model.size(); ++i)
             pi(i)->setValue(model[i]);
          simulation();
+         writeSimLog(periodCnt);
          cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
          nPatterns += periodCnt;
          periodCnt = 0;
@@ -208,15 +211,15 @@ CirMgr::classifyFecGrp()
 
    for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end();) {
 
-      CirFecGrp& oriGrp = (*(*iter));
+      CirFecGrp* oriGrp = *iter;
       HashMap<CirSimValue, CirFecGrp*> hash;
-      hash.init(getHashSize(oriGrp.size()));
+      hash.init(getHashSize(oriGrp->size()));
 
-      for (i = 0, n = oriGrp.size(); i < n; ++i) {
+      for (i = 0, n = oriGrp->size(); i < n; ++i) {
 
-         g = oriGrp.candGate(i);
+         g = oriGrp->candGate(i);
          oriValue = g->value();
-         value = oriGrp.candInv(i) ? ~oriValue : oriValue;
+         value = oriGrp->candInv(i) ? ~oriValue : oriValue;
 
          if (hash.check(CirSimValue(value), queryGrp)) {
             queryGrp->candidates().emplace_back(g, oriValue != queryGrp->value());
@@ -225,7 +228,7 @@ CirMgr::classifyFecGrp()
             queryGrp = getNewFecGrp();
             queryGrp->setValue(g->value());
             queryGrp->candidates().emplace_back(g);
-            hash.insert(CirSimValue(oriValue, oriGrp.candInv(i)), queryGrp);
+            hash.insert(CirSimValue(oriValue, oriGrp->candInv(i)), queryGrp);
             lCandGrp.push_back(queryGrp);
          }
       }
@@ -266,20 +269,35 @@ CirMgr::sortFecGrps()
 
    _lFecGrps.sort(
       [] (const CirFecGrp* g1, const CirFecGrp* g2) {
-         return g1->repGate()->var() < g2->repGate()->var();
+         return g1->repVar() < g2->repVar();
       });
 }
 
 void 
 CirMgr::linkGrp2Gate()
 {  
-   int i, n;
+   unsigned i, n;
    for (i = 0, n = _vAllGates.size(); i < n; ++i) 
       if (_vAllGates[i])
          _vAllGates[i]->setGrp(0);
    for (auto& grp : _lFecGrps)
       for (i = 0, n = grp->size(); i < n; ++i)
          grp->candGate(i)->setGrp(grp);
+}
+
+void 
+CirMgr::writeSimLog(const unsigned num) const
+{
+   if (!_simLog) return;
+   unsigned i, j;
+   for (i = 0; i < num; ++i) {
+      for (j = 0; j < _nPI; ++j)
+         *_simLog << pi(j)->value(i);
+      *_simLog << ' ';
+      for (j = 0; j < _nPO; ++j)
+         *_simLog << po(j)->value(i);
+      *_simLog << endl;
+   }
 }
 
 void 

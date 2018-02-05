@@ -121,12 +121,12 @@ private:
    void countAig();
    void rec_dfs(CirGate*);
 
-   // Private functions for cirSweep and cirOptimize
-
    // Private common functions
    void sortAllGateFanout();
    void mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged);
 
+   // Private functions for cirSweep and cirOptimize
+   
    // Private functions for cirSimulation
    bool checkPattern(const string& patternStr);
    void simulation();
@@ -136,6 +136,7 @@ private:
    void delFecGrp(CirFecGrp*);
    void sortFecGrps();
    void linkGrp2Gate();
+   void writeSimLog(const unsigned) const;
    CirFecGrp* getNewFecGrp();
 };
 

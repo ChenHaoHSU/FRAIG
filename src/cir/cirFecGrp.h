@@ -35,11 +35,13 @@ public:
    const CirGateV& cand(const unsigned i)     const { return _candidates[i];                                  }
    CirGate*        candGate(const unsigned i) const { return _candidates[i].gate();                           }
    bool            candInv(const unsigned i)  const { return _candidates[i].isInv() ^ _candidates[0].isInv(); }
+   unsigned        candVar(const unsigned i)  const { return _candidates[i].gate()->var();                    }
 
    // Representation of this group access functions
    const CirGateV& rep()     const { return _candidates[0];                                  }
    CirGate*        repGate() const { return _candidates[0].gate();                           }
    bool            repInv()  const { return _candidates[0].isInv() ^ _candidates[0].isInv(); }
+   unsigned        repVar()  const { return _candidates[0].gate()->var();                    }
 
    // Sort by var in incresing order
    void sort() {
