@@ -2,7 +2,7 @@
 *.out
 do*
 *.do
-pattern*
+pattern.*
 *.pattern
 *.log
 *.swp
