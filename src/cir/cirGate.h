@@ -42,6 +42,7 @@ public:
    bool     null()                           const { return _gateV == 0;                       }
    size_t   gateV()                          const { return _gateV;                            }
    void     setGateV(CirGate* g, bool phase)       { _gateV = size_t(g) + size_t(phase);       }
+   void     reset()                                { _gateV = 0;                               }
 
    // Operator overload
    bool   operator == (const CirGateV& c)    const { return _gateV == c.gateV(); }
@@ -246,10 +247,13 @@ public:
       if (isUndef()) return;
       _value = ( _fanin0.isInv() ? ~(_fanin0.gate()->value()) : _fanin0.gate()->value() ) 
              & ( _fanin1.isInv() ? ~(_fanin1.gate()->value()) : _fanin1.gate()->value() );
-   } 
+   }
+
+   void setDfsOrder(const unsigned o) { _dfsOrder = o; }
+   unsigned dfsOrder() const { return _dfsOrder; }
    
 private:
-   // unsigned _dfsOrder;
+   unsigned _dfsOrder;
 };
 
 

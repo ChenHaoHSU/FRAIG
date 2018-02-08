@@ -24,9 +24,3 @@ for i in range(nPtn):
       else:
          fout.write('1')
    fout.write('\n')
-
-print("==============================")
-print("Output \"" + sys.argv[1] + "\"")
-print("#Pattern = " + sys.argv[2])
-print("#PI      = " + sys.argv[3])
-print("==============================")

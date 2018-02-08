@@ -89,11 +89,20 @@ CirMgr::fraig()
    CirFecGrp* curGrp = 0;
    CirGate* repGate = 0;
    while (!_lFecGrps.empty()) {
+      buildDfsList();
       genProofModel();
+      assignDfsOrder();
+      sortFecGrps_dfsOrder();
       for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end(); iter = _lFecGrps.erase(iter)) {
          curGrp = *iter;
+         vector<CirGateV>& cands = curGrp->candidates();
          for (i = 1, n = curGrp->size(); i < n; ++i) {
+            // if (solve(cands[0], cands[i])) {
+               
+            // }
+            // else {
 
+            // }
          }
       }
       // mergeGates();
@@ -120,4 +129,20 @@ CirMgr::genProofModel()
                            g->fanin0_var(), g->fanin0_inv(),
                            g->fanin1_var(), g->fanin1_inv());
    }
+}
+
+void
+CirMgr::assignDfsOrder()
+{
+   for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
+      if (!_vDfsList[i]->isAig()) continue;
+      ((CirAigGate*)_vDfsList[i])->setDfsOrder(i);
+   }
+}
+
+void
+CirMgr::sortFecGrps_dfsOrder()
+{
+   for(auto& grp : _lFecGrps)
+      grp->sortDfsOrder();
 }

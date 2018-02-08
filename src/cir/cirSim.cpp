@@ -36,9 +36,11 @@ using namespace std;
 void
 CirMgr::randomSim()
 {
+   // Tuned parameter 'max_fail':
+   //   If #FECgroups remains the same continually 'max_fail' times,
+   //   then stop random simulation.
    unsigned max_fail  = 3 + 3 * log10(_vDfsList.size());
 
-   unsigned i         = 0;
    unsigned nPatterns = 0;
    unsigned nFail     = 0; // fail to make #fecGrps change
    unsigned preNum    = 0; // previous #FEC group
@@ -47,18 +49,18 @@ CirMgr::randomSim()
 
    while (nFail < max_fail) {
       model.random();
-      for (i = 0; i < model.size(); ++i)
-         pi(i)->setValue(model[i]);
+      setPiValue(model);
       simulation();
       writeSimLog(SIM_CYCLE);
       cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
       nPatterns += SIM_CYCLE;
 
+      // Update termination info
       nFail = (preNum == _lFecGrps.size() ? (nFail + 1) : 0);
       preNum = _lFecGrps.size();
    }
 
-   sortFecGrps();
+   sortFecGrps_var();
    linkGrp2Gate();
 
    cout << flush << '\r' << nPatterns << " patterns simulated.\n";
@@ -67,8 +69,6 @@ CirMgr::randomSim()
 void
 CirMgr::fileSim(ifstream& patternFile)
 {
-   // Set PI values
-   unsigned i;
    unsigned periodCnt = 0; // SIM_CYCLE, a period
    unsigned nPatterns = 0;
    string patternStr;
@@ -80,8 +80,7 @@ CirMgr::fileSim(ifstream& patternFile)
       if ( !(patternFile >> patternStr) ) {
          // simulate here one more time, then break
          if (periodCnt != 0) {
-            for (i = 0; i < model.size(); ++i)
-               pi(i)->setValue(model[i]);
+            setPiValue(model);
             simulation();
             writeSimLog(periodCnt);
             cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
@@ -94,7 +93,7 @@ CirMgr::fileSim(ifstream& patternFile)
       if (!checkPattern(patternStr)) break;
 
       // Set pattern value to model
-      for (i = 0; i < _nPI; ++i) {
+      for (unsigned i = 0; i < _nPI; ++i) {
          if (patternStr[i] == '0')
             model.add0(i, periodCnt);
          else // patternStr[i] == '1'
@@ -104,8 +103,7 @@ CirMgr::fileSim(ifstream& patternFile)
 
       // Simulate immediately, if 64 patterns are collected.
       if (periodCnt == SIM_CYCLE) {
-         for (i = 0; i < model.size(); ++i)
-            pi(i)->setValue(model[i]);
+         setPiValue(model);
          simulation();
          writeSimLog(periodCnt);
          cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
@@ -115,7 +113,7 @@ CirMgr::fileSim(ifstream& patternFile)
       }
    }
 
-   sortFecGrps();
+   sortFecGrps_var();
    linkGrp2Gate();
    
    cout << flush << '\r' << nPatterns << " patterns simulated.\n";
@@ -133,19 +131,26 @@ CirMgr::checkPattern(const string& patternStr)
    // 
    // 1. Length check
    if (patternStr.length() != _nPI) {
-      cerr << "\nError: Pattern(" << patternStr << ") length(" << patternStr.size() 
-           << ") does not match the number of inputs(" << _nPI << ") in a circuit!!\n";
+      fprintf(stderr, "\nError: Pattern(%s) length(%lu) does not match the number of inputs(%u) in a circuit!!\n", 
+         patternStr.c_str(), patternStr.length(), _nPI);
       return false;
    }
    // 2. Char check
    for (unsigned i = 0; i < patternStr.length(); ++i) {
       if (patternStr[i] != '0' && patternStr[i] != '1') {
-         cerr << "Error: Pattern(" << patternStr << ") contains a non-0/1 character(\'" 
-              << patternStr[i] << "\').\n";
+         fprintf(stderr, "\nError: Pattern(%s) contains a non-0/1 character(\'%c\').\n", 
+            patternStr.c_str(), patternStr[i]);
          return false;
       }
    } 
    return true;
+}
+
+void 
+CirMgr::setPiValue(const CirModel& model)
+{
+   for (unsigned i = 0, n = model.size(); i < n; ++i)
+      pi(i)->setValue(model[i]);
 }
 
 void 
@@ -173,20 +178,17 @@ CirMgr::initClassifyFecGrp()
    hash.init(getHashSize(_vDfsList.size()));
 
    // Const gate (must be inside whether it is in dfsList or not)
-   queryGrp = getNewFecGrp();
-   queryGrp->setValue(constGate()->value());
+   queryGrp = new CirFecGrp;
    queryGrp->candidates().emplace_back(constGate());
    hash.forceInsert(CirInitSimValue(constGate()->value()), queryGrp);
    
    // Aig gates
    for (unsigned i = 0, n = _vDfsList.size(); i < n && (g = _vDfsList[i]); ++i) {
       if (!g->isAig()) continue;
-      if (hash.check(CirInitSimValue(g->value()), queryGrp)) {
-         queryGrp->candidates().emplace_back(g, g->value() != queryGrp->value());
-      }
+      if (hash.check(CirInitSimValue(g->value()), queryGrp))
+         queryGrp->candidates().emplace_back(g, g->value() != queryGrp->repValue());
       else {
-         queryGrp = getNewFecGrp();
-         queryGrp->setValue(g->value());
+         queryGrp = new CirFecGrp;
          queryGrp->candidates().emplace_back(g);
          hash.forceInsert(CirInitSimValue(g->value()), queryGrp);
       }
@@ -195,7 +197,7 @@ CirMgr::initClassifyFecGrp()
    // Collect valid FEc group from hash
    for (auto iter = hash.begin(); iter != hash.end(); ++iter)
       if ((*iter).second->isValid())
-         _lFecGrps.push_back((*iter).second);
+         _lFecGrps.push_front((*iter).second);
 
    sweepInvalidFecGrp();
 }
@@ -206,43 +208,35 @@ CirMgr::classifyFecGrp()
    unsigned i, n;
    size_t value, oriValue;
    CirGate* g;
-   CirFecGrp* queryGrp;
+   CirFecGrp *queryGrp, *oriGrp;
    list<CirFecGrp*> lCandGrp;
+   HashMap<CirSimValue, CirFecGrp*> hash;
 
-   for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end();) {
+   for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end(); iter = _lFecGrps.erase(iter)) {
 
-      CirFecGrp* oriGrp = *iter;
-      HashMap<CirSimValue, CirFecGrp*> hash;
+      oriGrp = *iter;
       hash.init(getHashSize(oriGrp->size()));
 
-      for (i = 0, n = oriGrp->size(); i < n; ++i) {
+      for (i = 0, n = oriGrp->size(); i < n && (g = oriGrp->candGate(i)); ++i) {
 
-         g = oriGrp->candGate(i);
          oriValue = g->value();
          value = oriGrp->candInv(i) ? ~oriValue : oriValue;
 
-         if (hash.check(CirSimValue(value), queryGrp)) {
-            queryGrp->candidates().emplace_back(g, oriValue != queryGrp->value());
-         }
+         if (hash.check(CirSimValue(value), queryGrp))
+            queryGrp->candidates().emplace_back(g, oriValue != queryGrp->repValue());
          else {
-            queryGrp = getNewFecGrp();
-            queryGrp->setValue(g->value());
+            queryGrp = new CirFecGrp;
             queryGrp->candidates().emplace_back(g);
             hash.forceInsert(CirSimValue(oriValue, oriGrp->candInv(i)), queryGrp);
             lCandGrp.push_back(queryGrp);
          }
       }
-
-      // Recycle ...
-      delFecGrp((*iter));
-      iter = _lFecGrps.erase(iter);
+      delete *iter;
 
       // Collect valid FEC groups (i.e. size > 1)
-      for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end();) {
+      for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end(); iter2 = lCandGrp.erase(iter2))
          if ((*iter2)->isValid())
-            _lFecGrps.push_front((*iter2));
-         iter2 = lCandGrp.erase(iter2);
-      }
+            _lFecGrps.push_front(*iter2);
    }
 }
 
@@ -251,18 +245,18 @@ CirMgr::sweepInvalidFecGrp()
 {
    // Remove invalid FEC groups (i.e. size < 2)
    for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end();) {
-      CirFecGrp& grp = *(*iter);
-      if (grp.isValid()) ++iter;
+      CirFecGrp* grp = *iter;
+      if (grp->isValid()) ++iter;
       else {
-         assert(grp.size() == 1);
-         delFecGrp((*iter)); // recycle
+         assert(grp->size() == 1);
+         delete *iter; // recycle
          iter = _lFecGrps.erase(iter);
       }
    }
 }
 
 void 
-CirMgr::sortFecGrps()
+CirMgr::sortFecGrps_var()
 {
    for (auto& grp : _lFecGrps)
       grp->sort();
@@ -298,25 +292,4 @@ CirMgr::writeSimLog(const unsigned num) const
          *_simLog << po(j)->value(i);
       *_simLog << endl;
    }
-}
-
-void 
-CirMgr::delFecGrp(CirFecGrp* g)
-{
-   _lGarbageFecGrps.push_back(g);
-}
-
-CirFecGrp* 
-CirMgr::getNewFecGrp()
-{
-   CirFecGrp* ret = 0;
-   if (!_lGarbageFecGrps.empty()) {
-      ret = _lGarbageFecGrps.back();
-      ret->reset();
-      _lGarbageFecGrps.pop_back();
-   }
-   else {
-      ret = new CirFecGrp;
-   }
-   return ret;
 }
