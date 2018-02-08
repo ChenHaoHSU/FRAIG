@@ -48,7 +48,8 @@ CirMgr::strash()
       if (!_vDfsList[i]->isAig()) continue; // Skip non-AIG gate
       keyM.setGate(_vDfsList[i]);
       if (hashM.check(keyM, valueM)) {
-         fprintf(stdout, "Strashing: %d merging %d...\n", valueM->var(), _vDfsList[i]->var());
+         fprintf(stdout, "Strashing: %d merging %d...\n", 
+            valueM->var(), _vDfsList[i]->var());
          mergeGate(valueM, _vDfsList[i], false);
       }
       else 
@@ -67,7 +68,8 @@ CirMgr::strash()
       if (!_vDfsList[i]->isAig()) continue; // Skip non-AIG gate
       queryS.setGate(_vDfsList[i]);
       if (hashS.query(queryS)) {
-         fprintf(stdout, "Strashing: %d merging %d...\n", queryS.gate()->var(), _vDfsList[i]->var());
+         fprintf(stdout, "Strashing: %d merging %d...\n", 
+            queryS.gate()->var(), _vDfsList[i]->var());
          mergeGate(queryS.gate(), _vDfsList[i], false);
       }
       else 

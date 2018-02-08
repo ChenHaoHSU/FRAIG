@@ -39,10 +39,9 @@ CirMgr::sweep()
    ++globalRef;
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
       _vDfsList[i]->setRef(globalRef);
-
-      // [Note] that UNDEF gates never exist in DFS list
-      // So, make sure that UNDEF gates which can be reached by POs
-      // will be marked.
+      // [Note] UNDEF gates never exist in DFS list.
+      //        So, make sure that UNDEF gates which 
+      //        can be reached by POs will be marked.
       if (_vDfsList[i]->isPo()) 
          _vDfsList[i]->fanin0_gate()->setRef(globalRef);
       else if (_vDfsList[i]->isFloating()) { 
@@ -55,8 +54,7 @@ CirMgr::sweep()
    // Sweeping unmarked gates
    CirGate* g = 0; // for convenient
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i) {
-      if (_vAllGates[i]) {
-         g = _vAllGates[i];
+      if (_vAllGates[i] && (g = _vAllGates[i])) {
          if (g->ref() != globalRef) {
             // sweep AIG
             if (g->isAig()) {
@@ -70,10 +68,7 @@ CirMgr::sweep()
                fprintf(stdout, "Sweeping: UNDEF(%d) removed...\n", g->var());
                delGate(g);
             }
-            else {}
-         }
-      }
-   }
+            else {} }}}
 
    // Update Lists
    buildFloatingList();
@@ -92,7 +87,6 @@ CirMgr::optimize()
 {
    CirGate* g = 0;
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
-
       // Skip non-AIG gate
       if (!_vDfsList[i]->isAig()) continue;
 
@@ -107,48 +101,42 @@ CirMgr::optimize()
          if ( !g->fanin0_inv() ) { 
             // case1
             mergeGate(constGate(), g, false);
-            cout << "Simplifying: " << constGate()->var() 
-                 << " merging " << g->var() << "...\n";
+            fprintf(stdout, "Simplifying: %u merging %u...\n", constGate()->var(), g->var());
          }
          else{
             // case2
             mergeGate(g->fanin1_gate(), g, g->fanin1_inv());
-            cout << "Simplifying: " << g->fanin1_gate()->var() 
-                 << " merging " << (g->fanin1_inv() ? "!" : "") 
-                 << g->var() << "...\n";
+            fprintf(stdout, "Simplifying: %u merging %s%u...\n", 
+               g->fanin1_gate()->var(), (g->fanin1_inv() ? "!" : ""), g->var());
          }
       }
       else if ( g->fanin1_gate() == constGate() ) {
          if ( !g->fanin1_inv() ) { 
             // case1
             mergeGate(constGate(), g, false);
-            cout << "Simplifying: " << constGate()->var() 
-                 << " merging " << g->var() << "...\n";
+            fprintf(stdout, "Simplifying: %u merging %u...\n", constGate()->var(), g->var());
          }
          else{ 
             // case2
             mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
-            cout << "Simplifying: " << g->fanin0_gate()->var() 
-                 << " merging " << (g->fanin0_inv() ? "!" : "") 
-                 << g->var() << "...\n";
+            fprintf(stdout, "Simplifying: %u merging %s%u...\n", 
+               g->fanin0_gate()->var(), (g->fanin0_inv() ? "!" : ""), g->var());
          }
       }
       else if ( g->fanin0_gate() == g->fanin1_gate() ) {
          if ( g->fanin0_inv()  == g->fanin1_inv() ) { 
             // case3
             mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
-            cout << "Simplifying: " << g->fanin0_gate()->var() 
-                 << " merging " << (g->fanin0_inv() ? "!" : "") 
-                 << g->var() << "...\n";
+            fprintf(stdout, "Simplifying: %u merging %s%u...\n", 
+               g->fanin0_gate()->var(), (g->fanin0_inv() ? "!" : ""), g->var());
          }
          else { 
             // case4
             mergeGate(constGate(), g, false);
-            cout << "Simplifying: " << constGate()->var() 
-                 << " merging " << g->var() << "...\n";
+            fprintf(stdout, "Simplifying: %u merging %u...\n", constGate()->var(), g->var());
          }
       }
-      else continue; // no optimization
+      else {} // no optimization
    }
 
    // Update Lists

@@ -9,5 +9,6 @@ $EXE -f $1 1> $MYLOG
 $REF -f $1 1> $REFLOG 
 
 diff $MYLOG $REFLOG
+#vimdiff $MYLOG $REFLOG
 
 rm $MYLOG $REFLOG

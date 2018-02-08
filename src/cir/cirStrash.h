@@ -24,10 +24,9 @@ public:
    CirStrashS(CirGate* g = 0) : _gate(g) {}
    ~CirStrashS() {}
 
-   /* Key */
+   /* Key (Hash Function) */
    size_t operator () () const {
-         return _gate->fanin0() ^ _gate->fanin1();
-      // return _gate->fanin0() + _gate->fanin1();
+      return _gate->fanin0() ^ _gate->fanin1();
    }
 
    /* Key compare function */
@@ -61,10 +60,9 @@ public:
    CirStrashM(CirGate* g = 0) : _gate(g) {}
    ~CirStrashM() {}
 
-   /* Key */
+   /* Key (Hash Function) */
    size_t operator() () const { 
       return _gate->fanin0() ^ _gate->fanin1();
-      // return _gate->fanin0() + _gate->fanin1();
    }
 
    /* Key compare function */
