@@ -20,6 +20,7 @@
 #include "cirModel.h"
 #include "cirFecGrp.h"
 #include "cirSimValue.h"
+#include "sat.h"
 
 using namespace std;
 
@@ -63,10 +64,6 @@ public:
    void writeAag(ostream&) const;
    void writeGate(ostream&, CirGate*) const;
 
-   // Member functions about freeing pointers
-   void delGate(CirGate*);
-   void clear();
-
 private:
    // Basic Info (M I L O A)
    unsigned           _maxIdx;          // M (Max gate index)
@@ -93,17 +90,24 @@ private:
    list<CirFecGrp*>   _lFecGrps;        // List of all FEC groups
    list<CirFecGrp*>   _lGarbageFecGrps; // List of all removed FEC groups
 
+   // Fraig
+   SatSolver          _satSolver;       // Sat solver for proving
+   vector<CirGate*>   _vSatVarTable;    // Look up table (sat var -> gate)
 
-   // Basic access functions
-   unsigned   nPi()                 const { return _nPI; }
-   unsigned   nPo()                 const { return _nPO; }
-   CirPiGate* pi(const int& i)      const { assert(0 <= i && i < (int)_nPI); return (CirPiGate*)_vPi[i];                     }
-   CirPoGate* po(const int& i)      const { assert(0 <= i && i < (int)_nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
-   CirPiGate* pi(const unsigned& i) const { assert(0 <= i && i < _nPI);      return (CirPiGate*)_vPi[i];                     }
-   CirPoGate* po(const unsigned& i) const { assert(0 <= i && i < _nPO);      return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
-   CirGate*   constGate()           const { return _vAllGates[0]; } 
+   ////////////////////////////////////
+   //      Private Functions         //
+   ////////////////////////////////////
 
-   // Private functions for parsing AAG file
+   // Private access functions
+   unsigned   nPi()                const { return _nPI; }
+   unsigned   nPo()                const { return _nPO; }
+   CirPiGate* pi(const int i)      const { assert(0 <= i && i < (int)_nPI); return (CirPiGate*)_vPi[i];                     }
+   CirPoGate* po(const int i)      const { assert(0 <= i && i < (int)_nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
+   CirPiGate* pi(const unsigned i) const { assert(i < _nPI); return (CirPiGate*)_vPi[i];                     }
+   CirPoGate* po(const unsigned i) const { assert(i < _nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
+   CirGate*   constGate()          const { return _vAllGates[0]; } 
+
+   // Private functions about parsing AAG file
    bool parseAag(ifstream&);
    bool parsePi(ifstream&);
    bool parsePo(ifstream&);
@@ -122,12 +126,14 @@ private:
    void rec_dfs(CirGate*);
 
    // Private common functions
+   void clear();
+   void delGate(CirGate*);
    void sortAllGateFanout();
    void mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged);
 
-   // Private functions for cirSweep and cirOptimize
+   // Private functions about cirSweep and cirOptimize
    
-   // Private functions for cirSimulation
+   // Private functions about cirSimulation
    bool checkPattern(const string& patternStr);
    void simulation();
    void initClassifyFecGrp();
@@ -138,6 +144,11 @@ private:
    void linkGrp2Gate();
    void writeSimLog(const unsigned) const;
    CirFecGrp* getNewFecGrp();
+
+   // Private functions about cirFraig
+   void genProofModel();
+   // void proveOneFecGrp(CirFecGrp*);
+
 };
 
 #endif // CIR_MGR_H

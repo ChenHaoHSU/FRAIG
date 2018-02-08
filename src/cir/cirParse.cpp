@@ -130,7 +130,7 @@ CirMgr::parseComment(ifstream& fin)
 }
 
 CirGate* 
-CirMgr::queryGate(unsigned gid)
+CirMgr::queryGate(const unsigned gid)
 {
    assert(gid < _vAllGates.size());
    if (_vAllGates[gid] != 0) return _vAllGates[gid];

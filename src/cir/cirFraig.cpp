@@ -45,17 +45,14 @@ CirMgr::strash()
    CirStrashM keyM;     // hash key
    CirGate* valueM = 0; // value
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
-      // Skip non-AIG gate
-      if (!_vDfsList[i]->isAig()) continue;
-
+      if (!_vDfsList[i]->isAig()) continue; // Skip non-AIG gate
       keyM.setGate(_vDfsList[i]);
       if (hashM.check(keyM, valueM)) {
          fprintf(stdout, "Strashing: %d merging %d...\n", valueM->var(), _vDfsList[i]->var());
          mergeGate(valueM, _vDfsList[i], false);
-         delGate(_vDfsList[i]);
       }
       else 
-         hashM.insert(keyM, _vDfsList[i]);
+         hashM.forceInsert(keyM, _vDfsList[i]);
    }
 
    /****************************/
@@ -67,17 +64,11 @@ CirMgr::strash()
 
    CirStrashS queryS;
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
-      // Skip non-AIG gate
-      if (!_vDfsList[i]->isAig()) continue;
-
+      if (!_vDfsList[i]->isAig()) continue; // Skip non-AIG gate
       queryS.setGate(_vDfsList[i]);
       if (hashS.query(queryS)) {
          fprintf(stdout, "Strashing: %d merging %d...\n", queryS.gate()->var(), _vDfsList[i]->var());
-         cout << "Strashing: " << queryS.gate()->var() 
-              << " merging "   << _vDfsList[i]->var() 
-              << "...\n";
          mergeGate(queryS.gate(), _vDfsList[i], false);
-         delGate(_vDfsList[i]);
       }
       else 
          hashS.insert(queryS);
@@ -92,8 +83,39 @@ CirMgr::strash()
 void
 CirMgr::fraig()
 {
+   unsigned i, n;
+   CirFecGrp* curGrp = 0;
+   CirGate* repGate = 0;
+   while (!_lFecGrps.empty()) {
+      genProofModel();
+      for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end(); iter = _lFecGrps.erase(iter)) {
+         curGrp = *iter;
+         for (i = 1, n = curGrp->size(); i < n; ++i) {
+
+         }
+      }
+      // mergeGates();
+   }
+   assert(_lFecGrps.empty());
+   _bFirstSim = false;
 }
 
 /********************************************/
 /*   Private member functions about fraig   */
 /********************************************/
+void
+CirMgr::genProofModel()
+{
+   _satSolver.initialize();
+   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
+      _satSolver.newVar();
+
+   CirGate* g = 0;
+   for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
+      if (!_vDfsList[i]->isAig()) continue;
+      g = _vDfsList[i];
+      _satSolver.addAigCNF(g->var(), 
+                           g->fanin0_var(), g->fanin0_inv(),
+                           g->fanin1_var(), g->fanin1_inv());
+   }
+}

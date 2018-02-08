@@ -149,9 +149,6 @@ CirMgr::optimize()
          }
       }
       else continue; // no optimization
-
-      // Delete the optimized-out gate
-      delGate(g);
    }
 
    // Update Lists
@@ -179,5 +176,7 @@ CirMgr::mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged = false)
          deadGate->fanout_inv(i) ^ invMerged, deadGate) );
       liveGate->addFanout(deadGate->fanout_gate(i), deadGate->fanout_inv(i) ^ invMerged);
    }
+   // Delete deadGate
+   delGate(deadGate);
 }
 

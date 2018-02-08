@@ -235,7 +235,7 @@ public:
       return _fanin0.gate()->isUndef() || _fanin1.gate()->isUndef();
    }
    virtual void printGate() const {
-      // assert(!isUndef());
+      assert(!isUndef());
       cout << "AIG " << var() << " "
            << (_fanin0.gate()->isUndef() ? "*" : "") << (_fanin0.isInv() ? "!" : "") 
            << _fanin0.gate()->var() << " " 
@@ -249,6 +249,7 @@ public:
    } 
    
 private:
+   // unsigned _dfsOrder;
 };
 
 

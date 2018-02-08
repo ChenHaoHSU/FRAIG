@@ -176,7 +176,7 @@ CirMgr::initClassifyFecGrp()
    queryGrp = getNewFecGrp();
    queryGrp->setValue(constGate()->value());
    queryGrp->candidates().emplace_back(constGate());
-   hash.insert(CirInitSimValue(constGate()->value()), queryGrp);
+   hash.forceInsert(CirInitSimValue(constGate()->value()), queryGrp);
    
    // Aig gates
    for (unsigned i = 0, n = _vDfsList.size(); i < n && (g = _vDfsList[i]); ++i) {
@@ -188,7 +188,7 @@ CirMgr::initClassifyFecGrp()
          queryGrp = getNewFecGrp();
          queryGrp->setValue(g->value());
          queryGrp->candidates().emplace_back(g);
-         hash.insert(CirInitSimValue(g->value()), queryGrp);
+         hash.forceInsert(CirInitSimValue(g->value()), queryGrp);
       }
    }
 
@@ -228,7 +228,7 @@ CirMgr::classifyFecGrp()
             queryGrp = getNewFecGrp();
             queryGrp->setValue(g->value());
             queryGrp->candidates().emplace_back(g);
-            hash.insert(CirSimValue(oriValue, oriGrp->candInv(i)), queryGrp);
+            hash.forceInsert(CirSimValue(oriValue, oriGrp->candInv(i)), queryGrp);
             lCandGrp.push_back(queryGrp);
          }
       }

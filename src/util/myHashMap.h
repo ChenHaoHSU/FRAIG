@@ -188,7 +188,8 @@ public:
 
    // Need to be sure that k is not in the hash
    void forceInsert(const HashKey& k, const HashData& d) {
-      _buckets[bucketNum(k)].push_back(HashNode(k, d)); }
+      _buckets[bucketNum(k)].emplace_back(k, d); }
+      // _buckets[bucketNum(k)].push_back(HashNode(k, d)); }
 
 private:
    // Do not add any extra data member
