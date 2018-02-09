@@ -39,9 +39,9 @@ CirMgr::randomSim()
    // Tuned parameter 'max_fail':
    //   If #FECgroups remains the same continually 'max_fail' times,
    //   then stop random simulation.
-   unsigned max_fail  = 3 + 3 * log10(_vDfsList.size());
+   unsigned max_fail  = 3 + 3 * log10((double)_vDfsList.size());
 
-   unsigned nPatterns = 0;
+   unsigned nPatterns = 0; // accumulate number of sim patterns
    unsigned nFail     = 0; // fail to make #fecGrps change
    unsigned preNum    = 0; // previous #FEC group
 
@@ -49,9 +49,8 @@ CirMgr::randomSim()
 
    while (nFail < max_fail) {
       model.random();
-      setPiValue(model);
-      simulation();
-      writeSimLog(SIM_CYCLE);
+      sim_simulation(model);
+      sim_writeSimLog(SIM_CYCLE);
       cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
       nPatterns += SIM_CYCLE;
 
@@ -60,8 +59,8 @@ CirMgr::randomSim()
       preNum = _lFecGrps.size();
    }
 
-   sortFecGrps_var();
-   linkGrp2Gate();
+   sim_sortFecGrps_var();
+   sim_linkGrp2Gate();
 
    cout << flush << '\r' << nPatterns << " patterns simulated.\n";
 }
@@ -80,9 +79,8 @@ CirMgr::fileSim(ifstream& patternFile)
       if ( !(patternFile >> patternStr) ) {
          // simulate here one more time, then break
          if (periodCnt != 0) {
-            setPiValue(model);
-            simulation();
-            writeSimLog(periodCnt);
+            sim_simulation(model);
+            sim_writeSimLog(periodCnt);
             cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
             nPatterns += periodCnt;
          }
@@ -90,7 +88,7 @@ CirMgr::fileSim(ifstream& patternFile)
       }
 
       // Check if pattern is valid
-      if (!checkPattern(patternStr)) break;
+      if (!sim_checkPattern(patternStr)) break;
 
       // Set pattern value to model
       for (unsigned i = 0; i < _nPI; ++i) {
@@ -103,9 +101,8 @@ CirMgr::fileSim(ifstream& patternFile)
 
       // Simulate immediately, if 64 patterns are collected.
       if (periodCnt == SIM_CYCLE) {
-         setPiValue(model);
-         simulation();
-         writeSimLog(periodCnt);
+         sim_simulation(model);
+         sim_writeSimLog(periodCnt);
          cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
          nPatterns += periodCnt;
          periodCnt = 0;
@@ -113,8 +110,8 @@ CirMgr::fileSim(ifstream& patternFile)
       }
    }
 
-   sortFecGrps_var();
-   linkGrp2Gate();
+   sim_sortFecGrps_var();
+   sim_linkGrp2Gate();
    
    cout << flush << '\r' << nPatterns << " patterns simulated.\n";
 }
@@ -123,7 +120,7 @@ CirMgr::fileSim(ifstream& patternFile)
 /*   Private member functions about Simulation   */
 /*************************************************/
 bool
-CirMgr::checkPattern(const string& patternStr)
+CirMgr::sim_checkPattern(const string& patternStr)
 {
    // Error Handling:
    //    1. Length of pattern string == nPI
@@ -147,30 +144,27 @@ CirMgr::checkPattern(const string& patternStr)
 }
 
 void 
-CirMgr::setPiValue(const CirModel& model)
+CirMgr::sim_simulation(const CirModel& model) 
 {
+   // Set simulation patterns to PIs
    for (unsigned i = 0, n = model.size(); i < n; ++i)
       pi(i)->setValue(model[i]);
-}
 
-void 
-CirMgr::simulation() 
-{
-   // Calculate sim value
+   // Calculate sim value of every gate in DFS list
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i)
       _vDfsList[i]->calValue();
 
    // Classify gates into FEC groups
    if (!_bFirstSim) {
-      initClassifyFecGrp();
+      sim_initClassifyFecGrp();
       _bFirstSim = true;
    }
    else 
-      classifyFecGrp();
+      sim_classifyFecGrp();
 }
 
 void 
-CirMgr::initClassifyFecGrp()
+CirMgr::sim_initClassifyFecGrp()
 {
    CirGate* g = 0;
    CirFecGrp* queryGrp = 0;
@@ -199,11 +193,11 @@ CirMgr::initClassifyFecGrp()
       if ((*iter).second->isValid())
          _lFecGrps.push_front((*iter).second);
 
-   sweepInvalidFecGrp();
+   sim_sweepInvalidFecGrp();
 }
 
 void 
-CirMgr::classifyFecGrp()
+CirMgr::sim_classifyFecGrp()
 {
    unsigned i, n;
    size_t value, oriValue;
@@ -241,7 +235,7 @@ CirMgr::classifyFecGrp()
 }
 
 void 
-CirMgr::sweepInvalidFecGrp()
+CirMgr::sim_sweepInvalidFecGrp()
 {
    // Remove invalid FEC groups (i.e. size < 2)
    for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end();) {
@@ -256,7 +250,7 @@ CirMgr::sweepInvalidFecGrp()
 }
 
 void 
-CirMgr::sortFecGrps_var()
+CirMgr::sim_sortFecGrps_var()
 {
    for (auto& grp : _lFecGrps)
       grp->sort();
@@ -268,7 +262,7 @@ CirMgr::sortFecGrps_var()
 }
 
 void 
-CirMgr::linkGrp2Gate()
+CirMgr::sim_linkGrp2Gate()
 {  
    unsigned i, n;
    for (i = 0, n = _vAllGates.size(); i < n; ++i) 
@@ -280,11 +274,11 @@ CirMgr::linkGrp2Gate()
 }
 
 void 
-CirMgr::writeSimLog(const unsigned num) const
+CirMgr::sim_writeSimLog(const unsigned nPatterns) const
 {
    if (!_simLog) return;
    unsigned i, j;
-   for (i = 0; i < num; ++i) {
+   for (i = 0; i < nPatterns; ++i) {
       for (j = 0; j < _nPI; ++j)
          *_simLog << pi(j)->value(i);
       *_simLog << ' ';

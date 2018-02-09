@@ -14,6 +14,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <utility>
 
 #include "cirDef.h"
 #include "cirGate.h"
@@ -89,8 +90,6 @@ private:
    list<CirFecGrp*>   _lFecGrps;        // List of all FEC groups
 
    // Fraig
-   SatSolver          _satSolver;       // Sat solver for proving
-   vector<CirGate*>   _vSatVarTable;    // Look up table (sat var -> gate)
 
    ////////////////////////////////////
    //      Private Functions         //
@@ -121,31 +120,34 @@ private:
    void buildUnusedList();
    void buildUndefList();
    void countAig();
-   void rec_dfs(CirGate*);
+   void rec_dfs(CirGate* g);
 
    // Private common functions
    void clear();
-   void delGate(CirGate*);
+   void delGate(CirGate* g);
    void sortAllGateFanout();
    void mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged);
 
    // Private functions about cirSweep and cirOptimize
    
    // Private functions about cirSimulation
-   bool checkPattern(const string& patternStr);
-   void setPiValue(const CirModel& model);
-   void simulation();
-   void initClassifyFecGrp();
-   void classifyFecGrp();
-   void sweepInvalidFecGrp();
-   void sortFecGrps_var();
-   void linkGrp2Gate();
-   void writeSimLog(const unsigned) const;
+   bool sim_checkPattern(const string& patternStr);
+   void sim_simulation(const CirModel& model);
+   void sim_initClassifyFecGrp();
+   void sim_classifyFecGrp();
+   void sim_sweepInvalidFecGrp();
+   void sim_sortFecGrps_var();
+   void sim_linkGrp2Gate();
+   void sim_writeSimLog(const unsigned nPatterns) const;
 
    // Private functions about cirFraig
-   void genProofModel();
-   void assignDfsOrder();
-   void sortFecGrps_dfsOrder();
+   void fraig_initSatSolver(SatSolver& satSolver);
+   void fraig_assignDfsOrder();
+   void fraig_sortFecGrps_dfsOrder();
+   bool fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver);
+   void fraig_proveMsg(const CirGateV& g1, const CirGateV& g2);
+   void fraig_collectConuterEx(const SatSolver& satSolver, CirModel& model, const unsigned pos);
+   void fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs);
 };
 
 #endif // CIR_MGR_H

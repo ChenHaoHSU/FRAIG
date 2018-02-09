@@ -19,14 +19,22 @@
 using namespace std;
 
 // TODO: Feel free to define your own classes, variables, or functions.
+
+//------------------------------------------------------------------------
+//   Declare classes
+//------------------------------------------------------------------------
 class CirGateV;
 class CirGate;
 class CirPiGate;
 class CirPoGate;
 class CirAigGate;
 class CirConstGate;
+class CirFecGrp; // in cirFecGrp.h
 
-class CirFecGrp;
+//------------------------------------------------------------------------
+//   Define enum
+//------------------------------------------------------------------------
+
 
 //------------------------------------------------------------------------
 //   Define classes
@@ -58,7 +66,7 @@ class CirGate
 {
 public:
    CirGate(unsigned l = 0, unsigned v = 0)
-      : _lineNo(l), _var(v), _ref(0), _grp(0), _value(0) {}
+      : _lineNo(l), _var(v), _dfsOrder(0), _ref(0), _grp(0), _value(0) {}
    virtual ~CirGate() {}
 
    // Basic access methods
@@ -70,6 +78,7 @@ public:
    unsigned   lineNo()     const { return _lineNo;               }
    unsigned   var()        const { return _var;                  }
    unsigned   ref()        const { return _ref;                  }
+   unsigned   dfsOrder()   const { return _dfsOrder;             }
    size_t     value()      const { return _value;                }
    CirFecGrp* grp()        const { return _grp;                  }
 
@@ -102,9 +111,10 @@ public:
    // Basic setting methods
    void setLineNo(const unsigned l)     { _lineNo = l;                        }
    void setVar(const unsigned v)        { _var = v;                           }
-   void setValue(const size_t v)        { _value = v;                         }
+   void setDfsOrder(const unsigned o)   { _dfsOrder = o;                      }
    void setRef(const unsigned r)  const { _ref = r; /* const method orz... */ }
    void setGrp(CirFecGrp* g)            { _grp = g;                           }
+   void setValue(const size_t v)        { _value = v;                         }
    void setFanin0(const CirGateV& g)    { _fanin0 = g;                        } 
    void setFanin1(const CirGateV& g)    { _fanin1 = g;                        } 
    void addFanout(const CirGateV& g)    { _fanouts.push_back(g);              } 
@@ -137,16 +147,17 @@ public:
    size_t value(const unsigned pos)     const { return CONST1 & (_value >> pos); }
 
 private:
-   unsigned         _lineNo;
-   unsigned         _var;
-   mutable unsigned _ref;
-   CirFecGrp*       _grp;
+   unsigned           _lineNo;
+   unsigned           _var;
+   unsigned           _dfsOrder;
+   mutable unsigned   _ref;
+   CirFecGrp*         _grp;
 
 protected:
-   CirGateV         _fanin0;
-   CirGateV         _fanin1;
-   vector<CirGateV> _fanouts;
-   size_t           _value;   // simulation value
+   CirGateV           _fanin0;
+   CirGateV           _fanin1;
+   vector<CirGateV>   _fanouts;
+   size_t             _value;   // simulation value
 };
 
 
@@ -249,11 +260,8 @@ public:
              & ( _fanin1.isInv() ? ~(_fanin1.gate()->value()) : _fanin1.gate()->value() );
    }
 
-   void setDfsOrder(const unsigned o) { _dfsOrder = o; }
-   unsigned dfsOrder() const { return _dfsOrder; }
    
 private:
-   unsigned _dfsOrder;
 };
 
 

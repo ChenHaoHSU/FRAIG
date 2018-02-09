@@ -24,6 +24,8 @@ using namespace std;
 /*   Global variable and enum  */
 /*******************************/
 
+extern unsigned globalRef;
+
 /**************************************/
 /*   Static varaibles and functions   */
 /**************************************/
@@ -85,28 +87,20 @@ CirMgr::strash()
 void
 CirMgr::fraig()
 {
-   unsigned i, n;
-   CirFecGrp* curGrp = 0;
-   CirGate* repGate = 0;
+   SatSolver satSolver;
    while (!_lFecGrps.empty()) {
-      buildDfsList();
-      genProofModel();
-      assignDfsOrder();
-      sortFecGrps_dfsOrder();
-      for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end(); iter = _lFecGrps.erase(iter)) {
-         curGrp = *iter;
-         vector<CirGateV>& cands = curGrp->candidates();
-         for (i = 1, n = curGrp->size(); i < n; ++i) {
-            // if (solve(cands[0], cands[i])) {
-               
-            // }
-            // else {
+      fraig_initSatSolver(satSolver);
+      fraig_assignDfsOrder();
+      fraig_sortFecGrps_dfsOrder();
+      
 
-            // }
-         }
-      }
-      // mergeGates();
+
+
+
+      buildDfsList();
    }
+
+   strash();
    assert(_lFecGrps.empty());
    _bFirstSim = false;
 }
@@ -115,34 +109,76 @@ CirMgr::fraig()
 /*   Private member functions about fraig   */
 /********************************************/
 void
-CirMgr::genProofModel()
+CirMgr::fraig_initSatSolver(SatSolver& satSolver)
 {
-   _satSolver.initialize();
+   satSolver.initialize();
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
-      _satSolver.newVar();
-
-   CirGate* g = 0;
-   for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
-      if (!_vDfsList[i]->isAig()) continue;
-      g = _vDfsList[i];
-      _satSolver.addAigCNF(g->var(), 
-                           g->fanin0_var(), g->fanin0_inv(),
-                           g->fanin1_var(), g->fanin1_inv());
-   }
+      satSolver.newVar();
 }
 
 void
-CirMgr::assignDfsOrder()
+CirMgr::fraig_assignDfsOrder()
 {
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
       if (!_vDfsList[i]->isAig()) continue;
-      ((CirAigGate*)_vDfsList[i])->setDfsOrder(i);
+      ((CirAigGate*)_vDfsList[i])->setDfsOrder(i+1);
    }
+   constGate()->setDfsOrder(0);
 }
 
 void
-CirMgr::sortFecGrps_dfsOrder()
+CirMgr::fraig_sortFecGrps_dfsOrder()
 {
    for(auto& grp : _lFecGrps)
       grp->sortDfsOrder();
+}
+
+bool 
+CirMgr::fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver)
+{
+   Var newV = satSolver.newVar();
+   satSolver.addXorCNF(newV, g1.gate()->var(), g1.isInv(), 
+                          g2.gate()->var(), g2.isInv());
+   fraig_proveMsg(g1, g2);
+   satSolver.assumeRelease();
+   satSolver.assumeProperty(newV, true);  
+   satSolver.assumeProperty(constGate()->var(), false);
+   return satSolver.assumpSolve();
+}
+
+void
+CirMgr::fraig_proveMsg(const CirGateV& g1, const CirGateV& g2)
+{
+   bool inv = g1.isInv() ^ g2.isInv();
+   if(g1.gate() == constGate())
+      cout << flush << '\r' << "Prove " << (inv ? "!" : "") << g2.gate()->var() << " = 1..." ;
+   else
+      cout << flush << '\r' << "Prove (" << g1.gate()->var() << ", " 
+           << (inv ? "!" : "") << g2.gate()->var() << ")...";
+}
+
+void
+CirMgr::fraig_collectConuterEx(const SatSolver& satSolver, CirModel& model, const unsigned pos)
+{
+   for (unsigned i = 0; i < _nPI; ++i) {
+      if (satSolver.getValue(pi(i)->var()) == 0)
+         model.add0(i, pos);
+      else if (satSolver.getValue(pi(i)->var()) == 1)
+         model.add1(i, pos);
+      else assert(false); // should not return -1...
+   }
+}
+
+void
+CirMgr::fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
+{
+   // pair<CirGateV, CirGateV> : pair<liveGate, deadGate>
+   cout << flush << '\r';
+   for (unsigned i = 0, n = vMergePairs.size(); i < n; ++i) {
+      cout << "Fraig: "<< vMergePairs[i].first.gate()->var() <<" merging " 
+           << (vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv() ? "!" : "") 
+           << vMergePairs[i].second.gate()->var() << "..." << endl;
+      mergeGate(vMergePairs[i].first.gate(), vMergePairs[i].second.gate(),
+         vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv());
+   }
 }
