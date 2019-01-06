@@ -159,7 +159,7 @@ CirMgr::sim_simulation(const CirModel& model)
       sim_initClassifyFecGrp();
       _bFirstSim = true;
    }
-   else 
+   else
       sim_classifyFecGrp();
 }
 
