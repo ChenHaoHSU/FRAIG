@@ -200,15 +200,15 @@ public:
       : CirGate(l, v) {}
    ~CirPoGate() {}
 
-   virtual string   getTypeStr()   const { return "PO";           }
-   virtual string   typeStr()      const { return "PO";           }
-   virtual string   symbol()       const { return _symbol;        }
-   virtual bool     isPi()         const { return false;          }
-   virtual bool     isPo()         const { return true;           }
-   virtual bool     isAig()        const { return false;          }
-   virtual bool     isConst()      const { return false;          }
-   virtual bool     isUndef()      const { return false;          }
-   virtual bool     isFloating()   const { return _fanin0.null(); }
+   virtual string   getTypeStr()   const { return "PO";                      }
+   virtual string   typeStr()      const { return "PO";                      }
+   virtual string   symbol()       const { return _symbol;                   }
+   virtual bool     isPi()         const { return false;                     }
+   virtual bool     isPo()         const { return true;                      }
+   virtual bool     isAig()        const { return false;                     }
+   virtual bool     isConst()      const { return false;                     }
+   virtual bool     isUndef()      const { return false;                     }
+   virtual bool     isFloating()   const { return _fanin0.gate()->isUndef(); }
 
    virtual void printGate() const {
       cout << "PO  " << var() << " "

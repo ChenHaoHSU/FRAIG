@@ -320,9 +320,9 @@ CirMgr::writeGate(ostream& outfile, CirGate *g) const
 void
 CirMgr::rec_dfs(CirGate* g)
 {
-   if (g == 0)                return;
+   if (g == 0) return;
    if (g->ref() == globalRef) return;
-   if (g->isUndef())          return;
+   if (g->isUndef()) return;
    g->setRef(globalRef);
    rec_dfs(g->fanin0_gate());
    rec_dfs(g->fanin1_gate());
