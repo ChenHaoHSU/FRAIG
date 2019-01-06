@@ -1,6 +1,6 @@
 EXE=./oldfraig
 EXE=./fraig
-REF=./fraig-linux
+REF=./fraig-linux18
 
 MYLOG=$1.mine.log
 MYLOG2=$1.mine2.log

@@ -41,7 +41,7 @@ clean:
 
 cleanall: clean
 	@echo "Removing bin/*..."
-	@rm -f bin/*
+	@rm -rf bin/*
 
 ctags:	  
 	@rm -f src/tags
@@ -53,7 +53,7 @@ ctags:
 	@echo "Tagging $(MAIN)..."
 	@cd src; ctags -a $(MAIN)/*.cpp $(MAIN)/*.h
 
-32 64 mac:
+linux18 linux16 mac:
 	@for pkg in $(REFPKGS); \
 	do \
 	        cd lib; ln -sf lib$$pkg-$@.a lib$$pkg.a; cd ../..; \
