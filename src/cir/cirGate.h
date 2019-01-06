@@ -42,7 +42,7 @@ class CirFecGrp; // in cirFecGrp.h
 class CirGateV
 {
 public:
-   CirGateV(CirGate* g = 0, size_t phase = 0):  _gateV(size_t(g) + phase) {}
+   CirGateV(CirGate* g = nullptr, size_t phase = 0):  _gateV(size_t(g) + phase) {}
    ~CirGateV() {}
 
    CirGate* gate()                           const { return (CirGate*)(_gateV & ~size_t(NEG)); }

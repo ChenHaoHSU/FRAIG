@@ -26,7 +26,7 @@ public:
    bool     isValid() const { return _candidates.size() > 1;         }
 
    void push(const CirGateV& c) { _candidates.push_back(c); }
-   void emplace_back(CirGate* g = 0, size_t inv = 0) { _candidates.emplace_back(g,inv); }
+   void emplace_back(CirGate* g = nullptr, size_t inv = 0) { _candidates.emplace_back(g, inv); }
 
    vector<CirGateV>& candidates() { return _candidates; }
 

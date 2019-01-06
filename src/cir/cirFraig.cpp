@@ -45,7 +45,7 @@ CirMgr::strash()
    hashM.init(getHashSize(_vDfsList.size()));
 
    CirStrashM keyM;     // hash key
-   CirGate* valueM = 0; // value
+   CirGate* valueM = nullptr; // value
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
       if (!_vDfsList[i]->isAig()) continue; // Skip non-AIG gate
       keyM.setGate(_vDfsList[i]);

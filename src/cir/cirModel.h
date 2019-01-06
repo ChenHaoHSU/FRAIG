@@ -21,7 +21,6 @@ public:
    CirModel() {}
    CirModel(unsigned n) { 
       _patterns.resize(n, 0); 
-      reset();
       srand((unsigned)time(NULL)); 
    }
    ~CirModel() {}
@@ -29,15 +28,15 @@ public:
    const size_t operator[] (size_t i) const { return _patterns[i]; }
    size_t& operator[] (size_t i) { return _patterns[i]; }
 
-   void reset() { for (auto& s : _patterns) s = 0; }
-   void resize(const unsigned& n) { _patterns.clear(); _patterns.resize(n, 0); }
+   void reset() { fill(_patterns.begin(), _patterns.end(), 0); }
+   void resize(const unsigned n) { _patterns.clear(); _patterns.resize(n, 0); }
    size_t size() const { return _patterns.size(); }
 
-   void add0(const unsigned& i, const unsigned& pos) { _patterns[i] &= ~(CONST1 << pos); }
-   void add1(const unsigned& i, const unsigned& pos) { _patterns[i] |=  (CONST1 << pos); }
+   void add0(const unsigned i, const unsigned pos) { _patterns[i] &= ~(CONST1 << pos); }
+   void add1(const unsigned i, const unsigned pos) { _patterns[i] |=  (CONST1 << pos); }
 
    void random() {
-      for (auto& s : _patterns)
+      for (size_t s : _patterns)
          s = (s << (HALF_SIM_CYCLE)) ^ rand();
    }
 

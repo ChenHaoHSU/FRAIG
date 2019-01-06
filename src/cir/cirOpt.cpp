@@ -52,7 +52,7 @@ CirMgr::sweep()
    }
 
    // Sweeping unmarked gates
-   CirGate* g = 0; // for convenient
+   CirGate* g = nullptr; // for convenient
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i) {
       if (_vAllGates[i] && (g = _vAllGates[i])) {
          if (g->ref() != globalRef) {
@@ -85,7 +85,7 @@ CirMgr::sweep()
 void
 CirMgr::optimize()
 {
-   CirGate* g = 0;
+   CirGate* g = nullptr;
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
       // Skip non-AIG gate
       if (!_vDfsList[i]->isAig()) continue;

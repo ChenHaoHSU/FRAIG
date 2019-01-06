@@ -166,8 +166,8 @@ CirMgr::sim_simulation(const CirModel& model)
 void 
 CirMgr::sim_initClassifyFecGrp()
 {
-   CirGate* g = 0;
-   CirFecGrp* queryGrp = 0;
+   CirGate* g = nullptr;
+   CirFecGrp* queryGrp = nullptr;
    HashMap<CirInitSimValue, CirFecGrp*> hash;
    hash.init(getHashSize(_vDfsList.size()));
 
@@ -208,6 +208,8 @@ CirMgr::sim_classifyFecGrp()
 
    for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end(); iter = _lFecGrps.erase(iter)) {
 
+      lCandGrp.clear();
+
       oriGrp = *iter;
       hash.init(getHashSize(oriGrp->size()));
 
@@ -228,9 +230,10 @@ CirMgr::sim_classifyFecGrp()
       delete *iter;
 
       // Collect valid FEC groups (i.e. size > 1)
-      for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end(); iter2 = lCandGrp.erase(iter2))
+      for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end(); ++iter2)
          if ((*iter2)->isValid())
             _lFecGrps.push_front(*iter2);
+      
    }
 }
 
@@ -267,7 +270,7 @@ CirMgr::sim_linkGrp2Gate()
    unsigned i, n;
    for (i = 0, n = _vAllGates.size(); i < n; ++i) 
       if (_vAllGates[i])
-         _vAllGates[i]->setGrp(0);
+         _vAllGates[i]->setGrp(nullptr);
    for (auto& grp : _lFecGrps)
       for (i = 0, n = grp->size(); i < n; ++i)
          grp->candGate(i)->setGrp(grp);

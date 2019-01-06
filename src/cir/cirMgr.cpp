@@ -395,7 +395,7 @@ CirMgr::sortAllGateFanout()
 void
 CirMgr::delGate(CirGate* g)
 {
-   _vAllGates[g->var()] = 0;
+   _vAllGates[g->var()] = nullptr;
    delete g;
 }
 

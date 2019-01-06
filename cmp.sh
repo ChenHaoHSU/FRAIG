@@ -8,9 +8,9 @@ REFLOG=$1.ref.log
 REFLOG2=$1.ref2.log
 
 echo "Running my program..."
-$EXE -f $1 1> $MYLOG 2> $MYLOG2
+time $EXE -f $1 1> $MYLOG 2> $MYLOG2
 echo "Running ref program..."
-$REF -f $1 1> $REFLOG 2> $REFLOG2
+time $REF -f $1 1> $REFLOG 2> $REFLOG2
 
 echo "diff..."
 diff $MYLOG $REFLOG
@@ -19,4 +19,3 @@ diff $MYLOG2 $REFLOG2
 
 rm $MYLOG $REFLOG
 rm $MYLOG2 $REFLOG2
-

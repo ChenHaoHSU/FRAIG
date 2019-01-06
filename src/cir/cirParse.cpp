@@ -51,8 +51,8 @@ CirMgr::preProcess()
 bool 
 CirMgr::parsePi(ifstream& fin)
 {
-   CirPiGate* newPiGate = 0;
-   unsigned   lit       = 0;
+   CirPiGate* newPiGate = nullptr;
+   unsigned lit = 0;
    for (unsigned i = 0; i < _nPI; ++i) {
       fin >> lit;
       newPiGate = new CirPiGate(++lineNo, VAR(lit));
@@ -65,9 +65,9 @@ CirMgr::parsePi(ifstream& fin)
 bool 
 CirMgr::parsePo(ifstream& fin)
 {
-   CirPoGate* newPoGate = 0;
-   CirGate*   fanin     = 0;
-   unsigned   lit       = 0;
+   CirPoGate* newPoGate = nullptr;
+   CirGate* fanin = nullptr;
+   unsigned lit = 0;
    for (unsigned i = 0; i < _nPO; ++i) {
       fin >> lit;
       newPoGate = new CirPoGate(++lineNo, (_maxIdx + 1 + i));
@@ -104,7 +104,7 @@ bool
 CirMgr::parseSymbol(ifstream& fin)
 {
    string str = "";
-   int    idx = 0;
+   int idx = 0;
    while (fin >> str) {
       if (str == "c") break;
       if (str[0] == 'i') {
@@ -133,7 +133,7 @@ CirGate*
 CirMgr::queryGate(const unsigned gid)
 {
    assert(gid < _vAllGates.size());
-   if (_vAllGates[gid] != 0) return _vAllGates[gid];
+   if (_vAllGates[gid] != nullptr) return _vAllGates[gid];
 
    // Create new aig gate
    CirAigGate* newGate = new CirAigGate(0, gid);
