@@ -39,11 +39,11 @@ CirMgr::randomSim()
    // Tuned parameter 'max_fail':
    //   If #FECgroups remains the same continually 'max_fail' times,
    //   then stop random simulation.
-   unsigned max_fail  = 3 + 3 * log10((double)_vDfsList.size());
+   const unsigned max_fail  = 3 + 4 * log10((double)_vDfsList.size());
 
    unsigned nPatterns = 0; // accumulate number of sim patterns
-   unsigned nFail     = 0; // fail to make #fecGrps change
-   unsigned preNum    = 0; // previous #FEC group
+   unsigned nFail = 0; // fail to make #fecGrps change
+   unsigned preNum = 0; // previous #FEC group
 
    CirModel model(_nPI);
 

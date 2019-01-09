@@ -111,6 +111,7 @@ CirMgr::fraig()
 void
 CirMgr::fraig_initSatSolver(SatSolver& satSolver)
 {
+   /* Initialize SAT solver, #var in SAT solver will be the same as _vAllGates */
    satSolver.initialize();
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
       satSolver.newVar();

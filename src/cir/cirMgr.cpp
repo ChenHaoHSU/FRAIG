@@ -390,7 +390,7 @@ CirMgr::sortAllGateFanout()
 }
 
 /**********************************************************/
-/*   class CirMgr member functions about freeing pointers */
+/*   class CirMgr member functions for freeing pointers */
 /**********************************************************/
 void
 CirMgr::delGate(CirGate* g)
@@ -412,4 +412,15 @@ CirMgr::clear()
    for (auto& grp : _lFecGrps)
       delete grp;
    _lFecGrps.clear();
+}
+
+
+string CirMgr::bitString(size_t s) const {
+   size_t n = 8 * sizeof(size_t);
+   string str(n, 'x');
+   for (size_t i = 0, k = 1; i < n; ++i) {
+      str[n - i - 1] = s & k ? '1' : '0';
+      k <<= 1;
+   }
+   return str;
 }

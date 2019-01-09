@@ -29,6 +29,7 @@ public:
    void emplace_back(CirGate* g = nullptr, size_t inv = 0) { _candidates.emplace_back(g, inv); }
 
    vector<CirGateV>& candidates() { return _candidates; }
+   const vector<CirGateV>& candidates() const { return _candidates; }
 
    // Candidates access functions
    const CirGateV& cand(const unsigned i)     const { return _candidates[i];                                  }

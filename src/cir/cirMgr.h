@@ -104,7 +104,7 @@ private:
    CirPoGate* po(const unsigned i) const { assert(i < _nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
    CirGate*   constGate()          const { return _vAllGates[0]; } 
 
-   // Private functions about parsing AAG file
+   // Private functions for parsing AAG file
    bool parseAag(ifstream&);
    bool parsePi(ifstream&);
    bool parsePo(ifstream&);
@@ -114,7 +114,7 @@ private:
    void preProcess();
    CirGate* queryGate(const unsigned);
 
-   // Private functions about gate lists
+   // Private functions for gate lists
    void buildDfsList();
    void buildFloatingList();
    void buildUnusedList();
@@ -128,9 +128,9 @@ private:
    void sortAllGateFanout();
    void mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged);
 
-   // Private functions about cirSweep and cirOptimize
+   // Private functions for cirSweep and cirOptimize
    
-   // Private functions about cirSimulation
+   // Private functions for cirSimulation
    bool sim_checkPattern(const string& patternStr);
    void sim_simulation(const CirModel& model);
    void sim_initClassifyFecGrp();
@@ -140,7 +140,7 @@ private:
    void sim_linkGrp2Gate();
    void sim_writeSimLog(const unsigned nPatterns) const;
 
-   // Private functions about cirFraig
+   // Private functions for cirFraig
    void fraig_initSatSolver(SatSolver& satSolver);
    void fraig_assignDfsOrder();
    void fraig_sortFecGrps_dfsOrder();
@@ -148,6 +148,9 @@ private:
    void fraig_proveMsg(const CirGateV& g1, const CirGateV& g2);
    void fraig_collectConuterEx(const SatSolver& satSolver, CirModel& model, const unsigned pos);
    void fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs);
+
+   // Util functions
+   string bitString(size_t s) const;
 };
 
 #endif // CIR_MGR_H

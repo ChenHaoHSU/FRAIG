@@ -36,7 +36,7 @@ public:
    void add1(const unsigned i, const unsigned pos) { _patterns[i] |=  (CONST1 << pos); }
 
    void random() {
-      for (size_t s : _patterns)
+      for (size_t& s : _patterns)
          s = (s << (HALF_SIM_CYCLE)) ^ rand();
    }
 
