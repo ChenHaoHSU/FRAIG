@@ -42,7 +42,7 @@ void
 CirMgr::preProcess()
 {
    // Resize _vAllGates, and reserve _vGarbageList
-   _vAllGates.resize(1 + _maxIdx + _nPO, 0);
+   _vAllGates.resize(1 + _maxIdx + _nPO, nullptr);
    // Create CONST gate
    CirConstGate* newGate = new CirConstGate;
    _vAllGates[0] = newGate;

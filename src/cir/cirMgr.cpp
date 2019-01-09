@@ -404,8 +404,10 @@ CirMgr::clear()
 {
    // Delete gates
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
-      if (_vAllGates[i])
+      if (_vAllGates[i]) {
+         _vAllGates[i] = nullptr;
          delete _vAllGates[i];
+      }
    _vAllGates.clear();
 
    // Delete FEC groups
