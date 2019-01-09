@@ -85,9 +85,7 @@ CirMgr::parseAig(ifstream& fin)
    unsigned g_lit, f0_lit, f1_lit;
    CirGate *g, *f0, *f1;
    for (unsigned i = 0; i < _nAIG; ++i) {
-      fin >> g_lit;
-      fin >> f0_lit;
-      fin >> f1_lit;
+      fin >> g_lit >> f0_lit >> f1_lit;
       g  = queryGate(VAR(g_lit));
       f0 = queryGate(VAR(f0_lit));
       f1 = queryGate(VAR(f1_lit));
@@ -129,7 +127,7 @@ CirMgr::parseComment(ifstream& fin)
    return true;
 }
 
-CirGate* 
+CirGate*
 CirMgr::queryGate(const unsigned gid)
 {
    assert(gid < _vAllGates.size());
