@@ -39,7 +39,7 @@ CirMgr::randomSim()
    // Tuned parameter 'max_fail':
    //   If #FECgroups remains the same continually 'max_fail' times,
    //   then stop random simulation.
-   const unsigned max_fail  = 3 + 4 * log10((double)_vDfsList.size());
+   const unsigned max_fail  = 3 + 3 * log10((double)_vDfsList.size());
 
    unsigned nPatterns = 0; // accumulate number of sim patterns
    unsigned nFail = 0; // fail to make #fecGrps change
@@ -48,8 +48,13 @@ CirMgr::randomSim()
    CirModel model(_nPI);
 
    while (nFail < max_fail) {
+      // Randomly generate patterns
       model.random();
+
+      // Simulate the circuit
       sim_simulation(model);
+
+      // Write to the output file _simLog
       sim_writeSimLog(SIM_CYCLE);
       cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
       nPatterns += SIM_CYCLE;
@@ -79,7 +84,10 @@ CirMgr::fileSim(ifstream& patternFile)
       if ( !(patternFile >> patternStr) ) {
          // simulate here one more time, then break
          if (periodCnt != 0) {
+            // Simulate the circuit
             sim_simulation(model);
+
+            // Write to the output file _simLog
             sim_writeSimLog(periodCnt);
             cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
             nPatterns += periodCnt;
@@ -178,7 +186,9 @@ CirMgr::sim_initClassifyFecGrp()
    
    // Aig gates
    for (unsigned i = 0, n = _vDfsList.size(); i < n && (g = _vDfsList[i]); ++i) {
-      if (!g->isAig()) continue;
+      // Skip non-AIG gates
+      if (!g->isAig()) continue
+      ;
       if (hash.check(CirInitSimValue(g->value()), queryGrp))
          queryGrp->candidates().emplace_back(g, g->value() != queryGrp->repValue());
       else {
@@ -214,6 +224,8 @@ CirMgr::sim_classifyFecGrp()
       hash.init(getHashSize(oriGrp->size()));
 
       for (i = 0, n = oriGrp->size(); i < n && (g = oriGrp->candGate(i)); ++i) {
+
+         if (oriGrp->candGate(i) == nullptr) continue;
 
          oriValue = g->value();
          value = oriGrp->candInv(i) ? ~oriValue : oriValue;
@@ -272,8 +284,10 @@ CirMgr::sim_linkGrp2Gate()
       if (_vAllGates[i])
          _vAllGates[i]->setGrp(nullptr);
    for (auto& grp : _lFecGrps)
-      for (i = 0, n = grp->size(); i < n; ++i)
+      for (i = 0, n = grp->size(); i < n; ++i) {
          grp->candGate(i)->setGrp(grp);
+         grp->candGate(i)->setGrpIdx(i);
+      }
 }
 
 void 

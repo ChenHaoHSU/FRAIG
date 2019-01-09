@@ -32,17 +32,28 @@ public:
    const vector<CirGateV>& candidates() const { return _candidates; }
 
    // Candidates access functions
+   CirGateV&       cand(const unsigned i)           { return _candidates[i];                                  }
    const CirGateV& cand(const unsigned i)     const { return _candidates[i];                                  }
    CirGate*        candGate(const unsigned i) const { return _candidates[i].gate();                           }
    bool            candInv(const unsigned i)  const { return _candidates[i].isInv() ^ _candidates[0].isInv(); }
    unsigned        candVar(const unsigned i)  const { return _candidates[i].gate()->var();                    }
 
    // Representation of this group access functions
+   CirGateV&       rep()            { return _candidates[0];                                  }
    const CirGateV& rep()      const { return _candidates[0];                                  }
    CirGate*        repGate()  const { return _candidates[0].gate();                           }
    bool            repInv()   const { return _candidates[0].isInv() ^ _candidates[0].isInv(); }
    unsigned        repVar()   const { return _candidates[0].gate()->var();                    }
    size_t          repValue() const { return _candidates[0].gate()->value();                  }
+
+   // Refine _candidates
+   void refine() {
+    _candidates.erase(remove_if(
+      _candidates.begin(), _candidates.end(),
+      [&](const CirGateV gv){
+         return gv.gate() == nullptr;
+      }), _candidates.end());
+   }
 
    // Sort by var in incresing order
    void sort() {

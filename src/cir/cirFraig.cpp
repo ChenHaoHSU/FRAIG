@@ -87,19 +87,97 @@ CirMgr::strash()
 void
 CirMgr::fraig()
 {
+   #define UNSAT_MERGE_LIMIT 10000
+
    SatSolver satSolver;
+   CirModel model(_nPI);
+   unsigned periodCnt = 0; // SIM_CYCLE, a period
+   unsigned unsatCnt = 0;
+   vector<pair<CirGateV, CirGateV> > vMergePairs;
+
    while (!_lFecGrps.empty()) {
       fraig_initSatSolver(satSolver);
+      fraig_refine_fecgrp();
       fraig_assignDfsOrder();
       fraig_sortFecGrps_dfsOrder();
       
+      for (unsigned dfsId = 0, n = _vDfsList.size(); dfsId < n; ++dfsId) {
+         CirGate* curGate = _vDfsList[dfsId];
 
+         // Skip functionally unique gates
+         if (!curGate->isAig()) continue;
 
+         satSolver.addAigCNF(curGate->var() + 1, curGate->fanin0_var() + 1, curGate->fanin0_inv(), 
+                                                 curGate->fanin1_var() + 1, curGate->fanin1_inv());
+         if (curGate->grp() == nullptr) continue;
 
+         // Check if rep gate is curGate itself => no need to check
+         CirFecGrp* fecGrp = curGate->grp();
+         CirGate* repGate = fecGrp->repGate();
+         if (repGate == curGate) continue;
+         assert(fecGrp->candGate(curGate->grpIdx()) == curGate);
+
+         // Use SATsolver to prove if repGate and curGate are equivalent
+         const CirGateV& repGateV = fecGrp->rep();
+         const CirGateV& curGateV = fecGrp->cand(curGate->grpIdx());
+         assert(repGateV.gate() != curGateV.gate());
+
+         const bool result = fraig_solve(repGateV, curGateV, satSolver);
+         /* SAT: repGate and curGateare functionally INequivalent */
+         if (result) {
+            cerr << "SAT" << endl;
+            // Get the SAT asssignments from SATsolver and store the pattern in model
+            for (unsigned i = 0, nPI = _vPi.size(); i < nPI; ++i) {
+               const int val = satSolver.getValue(_vPi[i]->var() + 1);
+               if (val == 0) {
+                  model.add0(i, periodCnt);
+               }
+               else
+                  model.add1(i, periodCnt);
+            }
+            
+            // Counter goes on
+            ++periodCnt;
+
+            // Simulate the circuit if SIM_CYCLE(64) patterns are already collected
+            if (periodCnt >= SIM_CYCLE) {
+               sim_simulation(model);
+               sim_linkGrp2Gate();
+               periodCnt = 0;
+               fprintf(stdout, "Updating by SAT... Total #FEC Group = %lu", _lFecGrps.size());
+               getchar();
+               break;
+            }
+         }
+         /* UNSAT: repGate and curGate are functionally equivalent */
+         else {
+            cerr << "UNSAT" << endl;
+            // Record the merge pair, lazy merge
+            vMergePairs.emplace_back(repGateV, curGateV); // repGateV alive; curGateV dead
+            fecGrp->cand(curGate->grpIdx()) = CirGateV(nullptr);
+            if (++unsatCnt >= UNSAT_MERGE_LIMIT) {
+               fraig_mergeEqGates(vMergePairs);
+               unsatCnt = 0;
+               fprintf(stdout, "Updating by UNSAT... Total #FEC Group = %lu", _lFecGrps.size());
+               break;
+            }
+         }
+      }
 
       buildDfsList();
    }
 
+
+   if (unsatCnt > 0) {
+      fraig_mergeEqGates(vMergePairs);
+      unsatCnt = 0;
+   }
+   if (periodCnt > 0) {
+      sim_simulation(model);
+      periodCnt = 0;
+   }
+   
+   buildDfsList();
    strash();
    assert(_lFecGrps.empty());
    _bFirstSim = false;
@@ -111,10 +189,14 @@ CirMgr::fraig()
 void
 CirMgr::fraig_initSatSolver(SatSolver& satSolver)
 {
-   /* Initialize SAT solver, #var in SAT solver will be the same as _vAllGates */
+   /* Initialize SAT solver, #var in SAT solver will be the same as _vAllGates 
+      [Note] gate.var <==> SATsolver[gate.var+1]
+            e.g. for gate 5, its variable id is (5+1) in SAT solver
+   */
    satSolver.initialize();
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
       satSolver.newVar();
+   // satSolver.addUnitCNF(1, true); // Const gate must be false
 }
 
 void
@@ -124,7 +206,7 @@ CirMgr::fraig_assignDfsOrder()
       if (!_vDfsList[i]->isAig()) continue;
       ((CirAigGate*)_vDfsList[i])->setDfsOrder(i+1);
    }
-   constGate()->setDfsOrder(0);
+   constGate()->setDfsOrder(0); // important!! No one can merge const gate!!
 }
 
 void
@@ -132,25 +214,26 @@ CirMgr::fraig_sortFecGrps_dfsOrder()
 {
    for(auto& grp : _lFecGrps)
       grp->sortDfsOrder();
+   sim_linkGrp2Gate();
 }
 
 bool 
 CirMgr::fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver)
 {
    Var newV = satSolver.newVar();
-   satSolver.addXorCNF(newV, g1.gate()->var(), g1.isInv(), 
-                          g2.gate()->var(), g2.isInv());
+   satSolver.addXorCNF(newV, g1.gate()->var()+1, g1.isInv(), 
+                             g2.gate()->var()+1, g2.isInv());
    fraig_proveMsg(g1, g2);
    satSolver.assumeRelease();
-   satSolver.assumeProperty(newV, true);  
-   satSolver.assumeProperty(constGate()->var(), false);
+   satSolver.assumeProperty(newV, true);
+   satSolver.assumeProperty(1, false);
    return satSolver.assumpSolve();
 }
 
 void
 CirMgr::fraig_proveMsg(const CirGateV& g1, const CirGateV& g2)
 {
-   bool inv = g1.isInv() ^ g2.isInv();
+   const bool inv = g1.isInv() ^ g2.isInv();
    if(g1.gate() == constGate())
       cout << flush << '\r' << "Prove " << (inv ? "!" : "") << g2.gate()->var() << " = 1..." ;
    else
@@ -179,7 +262,17 @@ CirMgr::fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
       cout << "Fraig: "<< vMergePairs[i].first.gate()->var() <<" merging " 
            << (vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv() ? "!" : "") 
            << vMergePairs[i].second.gate()->var() << "..." << endl;
+      assert(vMergePairs[i].first.gate()->dfsOrder() < vMergePairs[i].second.gate()->dfsOrder());
       mergeGate(vMergePairs[i].first.gate(), vMergePairs[i].second.gate(),
          vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv());
    }
+   fraig_refine_fecgrp();
+   vMergePairs.clear();
+}
+
+void
+CirMgr::fraig_refine_fecgrp() {
+   for (auto& grp : _lFecGrps)
+      grp->refine();
+   sim_sweepInvalidFecGrp();
 }

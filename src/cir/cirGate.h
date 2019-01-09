@@ -81,6 +81,7 @@ public:
    unsigned   dfsOrder()   const { return _dfsOrder;             }
    size_t     value()      const { return _value;                }
    CirFecGrp* grp()        const { return _grp;                  }
+   unsigned   grpIdx()     const { return _grpIdx;               }
 
    // Fanin
    CirGateV fanin0()       const { return _fanin0;               }
@@ -114,6 +115,7 @@ public:
    void setDfsOrder(const unsigned o)   { _dfsOrder = o;                      }
    void setRef(const unsigned r)  const { _ref = r; /* const method orz... */ }
    void setGrp(CirFecGrp* g)            { _grp = g;                           }
+   void setGrpIdx(const unsigned i)     { _grpIdx = i;                        }
    void setValue(const size_t v)        { _value = v;                         }
    void setFanin0(const CirGateV& g)    { _fanin0 = g;                        } 
    void setFanin1(const CirGateV& g)    { _fanin1 = g;                        } 
@@ -152,6 +154,7 @@ private:
    unsigned           _dfsOrder;
    mutable unsigned   _ref;
    CirFecGrp*         _grp;
+   unsigned           _grpIdx;
 
 protected:
    CirGateV           _fanin0;

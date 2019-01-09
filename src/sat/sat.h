@@ -64,6 +64,12 @@ class SatSolver
          lits.push(~la); lits.push(~lb); lits.push(~lf);
          _solver->addClause(lits); lits.clear();
       }
+      // fa/fb = true if it is inverted
+      void addUnitCNF(Var vf, bool f) {
+         vec<Lit> lits;
+         Lit lf = f? ~Lit(lf): Lit(lf); lits.push(lf);
+         _solver->addClause(lits); lits.clear();
+      }
 
       // For incremental proof, use "assumeSolve()"
       void assumeRelease() { _assump.clear(); }
