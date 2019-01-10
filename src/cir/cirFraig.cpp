@@ -94,16 +94,23 @@ CirMgr::fraig()
 
    // Tuned parameter 'unsat_merge_ratio' and 'unsat_merge_ratio_increment':
    //    Only when dfs_ratio > unsat_merge_ratio will the merge operation be performed.
-   double unsat_merge_ratio = 0.10;
-   double unsat_merge_ratio_increment = 0.10;
+   double unsat_merge_ratio = 0.1;
+   double unsat_merge_ratio_increment = 0.1;
 
+   // When _lFecGrps is NOT empty, use SATsolver to prove gate equivalence in each fecgrp
    while (!_lFecGrps.empty()) {
       // Pre-process
+      //    1. Initialize satSolver: reset + newVar
+      //    2. Refine FEC grps: no nullptr in any fec grp
+      //    3. Assign DFS order: each gate is assigned their dfsOrder
+      //    4. Sort FEC grp: sort by dfsOrder so the first gate can merge every gate in its fec grp
+      //
       fraig_initSatSolver(satSolver);
       fraig_refine_fecgrp();
       fraig_assignDfsOrder();
       fraig_sortFecGrps_dfsOrder();
       
+      // Iterate the dfsList (from PI to PO)
       for (unsigned dfsId = 0, dfsSize = _vDfsList.size(); dfsId < dfsSize; ++dfsId) {
          // Current gate
          CirGate* curGate = _vDfsList[dfsId];
@@ -111,9 +118,10 @@ CirMgr::fraig()
          // Skip non-AIG gates
          if (!curGate->isAig()) continue;
 
-         // Add curGate to SATsolver
-         satSolver.addAigCNF(curGate->var() + 1, curGate->fanin0_var() + 1, curGate->fanin0_inv(), 
-                                                 curGate->fanin1_var() + 1, curGate->fanin1_inv());
+         // Add curGate (must be AIG gate) to SATsolver
+         satSolver.addAigCNF(fraig_sat_var(curGate->var()),
+                             fraig_sat_var(curGate->fanin0_var()), curGate->fanin0_inv(), 
+                             fraig_sat_var(curGate->fanin1_var()), curGate->fanin1_inv());
 
          // Skip functionally unique gates
          if (curGate->grp() == nullptr) continue;
@@ -155,18 +163,7 @@ CirMgr::fraig()
           * repGate and curGateare are functionally INequivalent 
          */
          else { // result == true
-            // Get the SAT asssignments from SATsolver and store the pattern in model
-            for (unsigned i = 0, nPI = _vPi.size(); i < nPI; ++i) {
-               const int val = satSolver.getValue(_vPi[i]->var() + 1);
-               if (val == 0)
-                  model.add0(i, periodCnt);
-               else
-                  model.add1(i, periodCnt);
-            }
-
-            // Counter moves on
-            ++periodCnt;
-
+            fraig_collectConuterEx(satSolver, model, periodCnt++);
             // Simulate the circuit if SIM_CYCLE(64) patterns are already collected
             if (periodCnt >= SIM_CYCLE) {
                sim_simulation(model);
@@ -190,6 +187,8 @@ CirMgr::fraig()
       sim_simulation(model);
       fraig_print_sat_update_msg();
    }
+   // Clear FEC grps
+   fraig_refine_fecgrp();
    
    buildDfsList();
    strash();
@@ -205,7 +204,7 @@ CirMgr::fraig_initSatSolver(SatSolver& satSolver)
 {
    /* Initialize SAT solver, #var in SAT solver will be the same as _vAllGates 
       [Note] gate.var <==> SATsolver[gate.var+1]
-            e.g. for gate 5, its variable id is (5+1) in SAT solver
+         e.g. for gate 5, its variable id is (5+1) in SAT solver
    */
    satSolver.initialize();
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
@@ -216,8 +215,8 @@ void
 CirMgr::fraig_assignDfsOrder()
 {
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
-      if (!_vDfsList[i]->isAig()) continue;
-      ((CirAigGate*)_vDfsList[i])->setDfsOrder(i+1);
+      if (_vDfsList[i]->isAig())
+         static_cast<CirAigGate*>(_vDfsList[i])->setDfsOrder(i+1);
    }
    constGate()->setDfsOrder(0); // important!! No one can merge const gate!!
 }
@@ -234,12 +233,12 @@ bool
 CirMgr::fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver)
 {
    Var newV = satSolver.newVar();
-   satSolver.addXorCNF(newV, g1.gate()->var()+1, g1.isInv(), 
-                             g2.gate()->var()+1, g2.isInv());
+   satSolver.addXorCNF(newV, fraig_sat_var(g1.gate()->var()), g1.isInv(), 
+                             fraig_sat_var(g2.gate()->var()), g2.isInv());
    fraig_proveMsg(g1, g2);
    satSolver.assumeRelease();
    satSolver.assumeProperty(newV, true);
-   satSolver.assumeProperty(1, false);
+   satSolver.assumeProperty(fraig_sat_var(constGate()->var()), false);
    bool result = satSolver.assumpSolve();
    cout << (result ? "SAT" : "UNSAT");
    return result;
@@ -274,14 +273,13 @@ CirMgr::fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
    // pair<CirGateV, CirGateV> : pair<liveGate, deadGate>
    cout << flush << '\r';
    for (unsigned i = 0, n = vMergePairs.size(); i < n; ++i) {
-      cout << "Fraig: "<< vMergePairs[i].first.gate()->var() <<" merging " 
+      cout << "Fraig: "<< vMergePairs[i].first.gate()->var() << " merging " 
            << (vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv() ? "!" : "") 
            << vMergePairs[i].second.gate()->var() << "..." << endl;
       assert(vMergePairs[i].first.gate()->dfsOrder() < vMergePairs[i].second.gate()->dfsOrder());
       mergeGate(vMergePairs[i].first.gate(), vMergePairs[i].second.gate(),
-         vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv());
+                vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv());
    }
-   fraig_refine_fecgrp();
    vMergePairs.clear();
 }
 
@@ -300,4 +298,9 @@ CirMgr::fraig_print_unsat_update_msg() const {
 void
 CirMgr::fraig_print_sat_update_msg() const {
    cout << flush << '\r' << "Updating by SAT... Total #FEC Group = " << _lFecGrps.size() << endl;
+}
+
+unsigned
+CirMgr::fraig_sat_var(const unsigned gate_var) const {
+   return gate_var + 1;
 }

@@ -76,7 +76,7 @@ private:
 
    // Gate Lists
    vector<CirGate*>   _vPi;             // List of all PIs
-   vector<CirGate*>   _vAllGates;       // List of all gates!! Can be access by idx!!
+   vector<CirGate*>   _vAllGates;       // List of all gates!! Can be accessed by idx!!
    vector<CirGate*>   _vDfsList;        // Depth-Fisrt Search List
    vector<CirGate*>   _vFloatingList;   // List of all floating gates
    vector<CirGate*>   _vUnusedList;     // List of all unused gates
@@ -85,7 +85,7 @@ private:
    // Sim log file (Do not remove it!!)
    ofstream          *_simLog;          // Log file of Simulation result
 
-   // Simulation info
+   // Simulation
    bool               _bFirstSim;       // Is the FEC group be initialized ? (i.e. ever simulated?)
    list<CirFecGrp*>   _lFecGrps;        // List of all FEC groups
 
@@ -104,17 +104,17 @@ private:
    CirPoGate* po(const unsigned i) const { assert(i < _nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
    CirGate*   constGate()          const { return _vAllGates[0]; } 
 
-   // Private functions for parsing AAG file
-   bool parseAag(ifstream&);
-   bool parsePi(ifstream&);
-   bool parsePo(ifstream&);
-   bool parseAig(ifstream&);
-   bool parseSymbol(ifstream&);
-   bool parseComment(ifstream&);
+   // Private functions for parsing AAG file (defined in cirParse.cpp)
+   bool parseAag(ifstream& fin);
+   bool parsePi(ifstream& fin);
+   bool parsePo(ifstream& fin);
+   bool parseAig(ifstream& fin);
+   bool parseSymbol(ifstream& fin);
+   bool parseComment(ifstream& fin);
    void preProcess();
-   CirGate* queryGate(const unsigned);
+   CirGate* queryGate(const unsigned gid);
 
-   // Private functions for gate lists
+   // Private functions for building gate lists (defined in cirMgr.cpp)
    void buildDfsList();
    void buildFloatingList();
    void buildUnusedList();
@@ -122,15 +122,15 @@ private:
    void countAig();
    void rec_dfs(CirGate* g);
 
-   // Private common functions
-   void clear();
+   // Private common functions (defined in cirMgr.cpp)
    void delGate(CirGate* g);
+   void clear();
    void sortAllGateFanout();
-   void mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged);
+   void mergeGate(CirGate* aliveGate, CirGate* deadGate, bool invMerged);
 
-   // Private functions for cirSweep and cirOptimize
+   // Private functions for cirSweep and cirOptimize (defined in cirOpt.cpp)
    
-   // Private functions for cirSimulation
+   // Private functions for cirSimulation (defined in cirSim.cpp)
    bool sim_checkPattern(const string& patternStr);
    void sim_simulation(const CirModel& model);
    void sim_initClassifyFecGrp();
@@ -140,7 +140,7 @@ private:
    void sim_linkGrp2Gate();
    void sim_writeSimLog(const unsigned nPatterns) const;
 
-   // Private functions for cirFraig
+   // Private functions for cirFraig (defined in cirFraig.cpp)
    void fraig_initSatSolver(SatSolver& satSolver);
    void fraig_assignDfsOrder();
    void fraig_sortFecGrps_dfsOrder();
@@ -151,8 +151,9 @@ private:
    void fraig_refine_fecgrp();
    void fraig_print_unsat_update_msg() const;
    void fraig_print_sat_update_msg() const;
+   unsigned fraig_sat_var(const unsigned gate_var) const;
 
-   // Util functions
+   // Util functions (defined in cirMgr.cpp)
    string bitString(size_t s) const;
 };
 

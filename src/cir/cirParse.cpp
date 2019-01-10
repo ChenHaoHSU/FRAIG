@@ -138,12 +138,3 @@ CirMgr::queryGate(const unsigned gid)
    _vAllGates[gid] = newGate;
    return _vAllGates[gid];
 }
-
-
-
-
-
-
-
-
-

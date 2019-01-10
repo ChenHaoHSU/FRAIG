@@ -258,7 +258,7 @@ CirMgr::sim_sweepInvalidFecGrp()
       if (grp->isValid()) ++iter;
       else {
          assert(grp->size() == 1);
-         delete *iter; // recycle
+         delete *iter;
          iter = _lFecGrps.erase(iter);
       }
    }

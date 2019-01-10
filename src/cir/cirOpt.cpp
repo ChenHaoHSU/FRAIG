@@ -150,21 +150,3 @@ CirMgr::optimize()
 /***************************************************/
 /*   Private member functions about optimization   */
 /***************************************************/
-void 
-CirMgr::mergeGate(CirGate* liveGate, CirGate* deadGate, bool invMerged = false) 
-{
-   // Remove deadGate from deadGate's fanins' fanout
-   assert( deadGate->fanin0_gate()->rmFanout(deadGate) );
-   assert( deadGate->fanin1_gate()->rmFanout(deadGate) );
-
-   // Replace deadGate's fanouts' fanin with liveGate,
-   // and also add to liveGate's fanout
-   for (unsigned i = 0, n = deadGate->nFanouts(); i < n; ++i) {
-      assert( deadGate->fanout_gate(i)->replaceFanin(liveGate, 
-         deadGate->fanout_inv(i) ^ invMerged, deadGate) );
-      liveGate->addFanout(deadGate->fanout_gate(i), deadGate->fanout_inv(i) ^ invMerged);
-   }
-   // Delete deadGate
-   delGate(deadGate);
-}
-

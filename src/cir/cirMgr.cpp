@@ -390,7 +390,7 @@ CirMgr::sortAllGateFanout()
 }
 
 /**********************************************************/
-/*   class CirMgr member functions for freeing pointers */
+/*   class CirMgr member functions for freeing pointers   */
 /**********************************************************/
 void
 CirMgr::delGate(CirGate* g)
@@ -414,7 +414,30 @@ CirMgr::clear()
    _lFecGrps.clear();
 }
 
+/**********************************************************/
+/*   class CirMgr member functions for merging two gates  */
+/**********************************************************/
+void 
+CirMgr::mergeGate(CirGate* aliveGate, CirGate* deadGate, bool invMerged = false) 
+{
+   // Remove deadGate from deadGate's fanins' fanout
+   assert( deadGate->fanin0_gate()->rmFanout(deadGate) );
+   assert( deadGate->fanin1_gate()->rmFanout(deadGate) );
 
+   // Replace deadGate's fanouts' fanin with aliveGate,
+   // and also add to aliveGate's fanout
+   for (unsigned i = 0, n = deadGate->nFanouts(); i < n; ++i) {
+      assert( deadGate->fanout_gate(i)->replaceFanin(aliveGate, 
+         deadGate->fanout_inv(i) ^ invMerged, deadGate) );
+      aliveGate->addFanout(deadGate->fanout_gate(i), deadGate->fanout_inv(i) ^ invMerged);
+   }
+   // Delete deadGate
+   delGate(deadGate);
+}
+
+/**********************************************************/
+/*   class CirMgr member functions for utility            */
+/**********************************************************/
 string CirMgr::bitString(size_t s) const {
    size_t n = 8 * sizeof(size_t);
    string str(n, 'x');

@@ -18,3 +18,4 @@ fraig-64
 *.ptn
 *.mak
 .vscode/*
+*.miter
