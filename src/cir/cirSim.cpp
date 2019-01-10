@@ -189,9 +189,9 @@ CirMgr::sim_initClassifyFecGrp()
    for (unsigned i = 0, n = _vDfsList.size(); i < n && (g = _vDfsList[i]); ++i) {
       // Skip non-AIG gates
       if (!g->isAig()) continue;
-      if (hash.check(CirInitSimValue(g->value()), queryGrp))
+      if (hash.check(CirInitSimValue(g->value()), queryGrp)) {
          queryGrp->candidates().emplace_back(g, g->value() != queryGrp->repValue());
-      else {
+      } else {
          queryGrp = new CirFecGrp;
          queryGrp->candidates().emplace_back(g);
          hash.forceInsert(CirInitSimValue(g->value()), queryGrp);
@@ -228,9 +228,9 @@ CirMgr::sim_classifyFecGrp()
          oriValue = g->value();
          value = oriGrp->candInv(i) ? ~oriValue : oriValue;
 
-         if (hash.check(CirSimValue(value), queryGrp))
+         if (hash.check(CirSimValue(value), queryGrp)) {
             queryGrp->candidates().emplace_back(g, oriValue != queryGrp->repValue());
-         else {
+         } else {
             queryGrp = new CirFecGrp;
             queryGrp->candidates().emplace_back(g);
             hash.forceInsert(CirSimValue(oriValue, oriGrp->candInv(i)), queryGrp);

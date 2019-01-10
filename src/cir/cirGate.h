@@ -54,6 +54,7 @@ public:
 
    // Operator overload
    bool   operator == (const CirGateV& c)    const { return _gateV == c.gateV(); }
+   bool   operator != (const CirGateV& c)    const { return _gateV != c.gateV(); }
    size_t operator +  (const CirGateV& c)    const { return _gateV +  c.gateV(); }
    size_t operator ^  (const CirGateV& c)    const { return _gateV ^  c.gateV(); }
 

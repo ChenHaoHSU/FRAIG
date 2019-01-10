@@ -109,7 +109,19 @@ CirGate::rec_rptFanout(const CirGate* g, bool inv, int level, int nSpace) const
 string 
 CirGate::fecStr() const
 {
-   return "";
+   string str = "";
+   if (_grp != nullptr) {
+      bool inv;
+      const vector<CirGateV>& vCands = _grp->candidates();
+      const CirGateV thisGateV = _grp->cand(_grpIdx);
+      for(auto& gateV : vCands) {
+         if (gateV != thisGateV) {
+            inv = thisGateV.isInv() ^ gateV.isInv();
+            str = str + " " + (inv ? "!" : "") + to_string(gateV.gate()->var());
+         }
+      }
+   }
+   return str;
 }
 
 string 
