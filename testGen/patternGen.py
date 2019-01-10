@@ -19,8 +19,7 @@ nPtn = int(sys.argv[3])
 fout = open(sys.argv[1], 'w')
 for i in range(nPtn):
    for j in range(nPI):
-      if (rand.random() < 0.5):
-         fout.write('0')
-      else:
-         fout.write('1')
+      fout.write('{}'.format(rand.randint(0, 1)))
    fout.write('\n')
+
+print('{} {}-bit patterns generated. ({})'.format(nPtn, nPI, sys.argv[1]))

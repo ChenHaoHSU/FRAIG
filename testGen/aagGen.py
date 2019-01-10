@@ -62,3 +62,5 @@ for i in range(nPO):
 
 #Comments
 fout.write('c\nAAG output by Chen-Hao Hsu\n')
+
+print('AAG file generated. ({})'.format(sys.argv[1]))
