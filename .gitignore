@@ -9,6 +9,7 @@ pattern.*
 *.out
 *.o
 *.a
+!libcmd*.a
 bin/*
 fraig
 fraig-linux
