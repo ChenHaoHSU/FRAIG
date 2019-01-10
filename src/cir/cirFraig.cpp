@@ -123,9 +123,11 @@ CirMgr::fraig()
          assert(repGateV.gate() != curGateV.gate());
 
          const bool result = fraig_solve(repGateV, curGateV, satSolver);
-         /* SAT: repGate and curGateare functionally INequivalent */
+         /* 
+          * SAT:
+          * repGate and curGateare are functionally INequivalent 
+         */
          if (result) {
-            cerr << "SAT" << endl;
             // Get the SAT asssignments from SATsolver and store the pattern in model
             for (unsigned i = 0, nPI = _vPi.size(); i < nPI; ++i) {
                const int val = satSolver.getValue(_vPi[i]->var() + 1);
@@ -144,21 +146,22 @@ CirMgr::fraig()
                sim_simulation(model);
                sim_linkGrp2Gate();
                periodCnt = 0;
-               fprintf(stdout, "Updating by SAT... Total #FEC Group = %lu", _lFecGrps.size());
-               getchar();
+               cout << flush << '\r' << "Updating by SAT... Total #FEC Group = " << _lFecGrps.size() << endl;
                break;
             }
          }
-         /* UNSAT: repGate and curGate are functionally equivalent */
+         /* 
+          * UNSAT:
+          * repGate and curGate are functionally equivalent 
+         */
          else {
-            cerr << "UNSAT" << endl;
             // Record the merge pair, lazy merge
             vMergePairs.emplace_back(repGateV, curGateV); // repGateV alive; curGateV dead
             fecGrp->cand(curGate->grpIdx()) = CirGateV(nullptr);
             if (++unsatCnt >= UNSAT_MERGE_LIMIT) {
                fraig_mergeEqGates(vMergePairs);
                unsatCnt = 0;
-               fprintf(stdout, "Updating by UNSAT... Total #FEC Group = %lu", _lFecGrps.size());
+               cout << flush << '\r' << "Updating by UNSAT... Total #FEC Group = " << _lFecGrps.size() << endl;
                break;
             }
          }
@@ -170,11 +173,11 @@ CirMgr::fraig()
 
    if (unsatCnt > 0) {
       fraig_mergeEqGates(vMergePairs);
-      unsatCnt = 0;
+      cout << flush << '\r' << "Updating by UNSAT... Total #FEC Group = " << _lFecGrps.size() << endl;
    }
    if (periodCnt > 0) {
       sim_simulation(model);
-      periodCnt = 0;
+      cout << flush << '\r' << "Updating by SAT... Total #FEC Group = " << _lFecGrps.size() << endl;
    }
    
    buildDfsList();
@@ -196,7 +199,6 @@ CirMgr::fraig_initSatSolver(SatSolver& satSolver)
    satSolver.initialize();
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
       satSolver.newVar();
-   // satSolver.addUnitCNF(1, true); // Const gate must be false
 }
 
 void
@@ -227,7 +229,9 @@ CirMgr::fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver
    satSolver.assumeRelease();
    satSolver.assumeProperty(newV, true);
    satSolver.assumeProperty(1, false);
-   return satSolver.assumpSolve();
+   bool result = satSolver.assumpSolve();
+   cout << (result ? "SAT" : "UNSAT");
+   return result;
 }
 
 void

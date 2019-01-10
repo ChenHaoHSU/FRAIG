@@ -17,3 +17,4 @@ fraig-64
 *.tgz
 *.ptn
 *.mak
+.vscode/*
