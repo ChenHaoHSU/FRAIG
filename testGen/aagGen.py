@@ -31,27 +31,34 @@ aigIdx = [ allIdx.pop() for i in range(nAIG) ]
 rand.shuffle(aigIdx)
 poIdx = [ rand.choice(aigIdx) for i in range(nPO) ]
 
+# Open file
 fout = open(sys.argv[1], 'w')
+
 # First line
-fout.write('aag '+str(maxIdx)+' '+str(nPI)+' '+str(nLATCH)+' '+str(nPO)+' ' +str(nAIG)+'\n')
+fout.write('aag {} {} {} {} {}\n'.format(maxIdx, nPI, nLATCH, nPO, nAIG))
+
 #PIs
 for i in range(nPI):
-	fout.write(str(piIdx[i] * 2) + '\n')
+	fout.write('{}\n'.format(piIdx[i] * 2))
+
 #POs
 for i in range(nPO):
-	fout.write(str(poIdx[i] * 2 + rand.randint(0, 1)) + '\n')
+	fout.write('{}\n'.format(poIdx[i] * 2 + rand.randint(0, 1)))
+
 #AIGs
 preGates = piIdx
 for i in range(nAIG):
-	fout.write(str(aigIdx[i] * 2))
-	fout.write(' ' + str(rand.choice(preGates) * 2 + rand.randint(0, 1)))
-	fout.write(' ' + str(rand.choice(preGates) * 2 + rand.randint(0, 1)))
-	fout.write('\n')
+	v = aigIdx[i] * 2
+	f1 = rand.choice(preGates) * 2 + rand.randint(0, 1)
+	f2 = rand.choice(preGates) * 2 + rand.randint(0, 1)
+	fout.write('{} {} {}\n'.format(v, f1, f2))
 	preGates.append(aigIdx[i])
+	
 #Symbols
 for i in range(nPI):
-	fout.write('i'+str(i)+' '+'INPUT'+str(i)+'\n')
+	fout.write('i{} INPUT_{}\n'.format(i,i))
 for i in range(nPO):
-	fout.write('o'+str(i)+' '+'OUTPUT'+str(i)+'\n')
+	fout.write('o{} OUTPUT_{}\n'.format(i,i))
+
 #Comments
 fout.write('c\nAAG output by Chen-Hao Hsu\n')
