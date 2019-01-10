@@ -246,7 +246,7 @@ CirMgr::sim_classifyFecGrp()
    }
 }
 
-void 
+void
 CirMgr::sim_sweepInvalidFecGrp()
 {
    // Remove invalid FEC groups (i.e. size < 2)

@@ -46,6 +46,12 @@ public:
    unsigned        repVar()   const { return _candidates[0].gate()->var();                    }
    size_t          repValue() const { return _candidates[0].gate()->value();                  }
 
+   // Lazy delete
+   void lazy_delete(const unsigned i) {
+      assert(i < _candidates.size());
+      _candidates[i] = CirGateV(nullptr);
+   }
+
    // Refine _candidates
    void refine() {
     _candidates.erase(remove_if(

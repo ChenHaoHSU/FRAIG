@@ -149,7 +149,7 @@ CirMgr::fraig()
          if (!result) {
             // Record the merge pair, lazy merge
             vMergePairs.emplace_back(repGateV, curGateV); // repGateV alive; curGateV dead
-            fecGrp->cand(curGate->grpIdx()) = CirGateV(nullptr);
+            fecGrp->lazy_delete(curGate->grpIdx());
             const double current_dfs_ratio = ((double)dfsId) / ((double)dfsSize);
             if (current_dfs_ratio > unsat_merge_ratio && !vMergePairs.empty()) {
                fraig_mergeEqGates(vMergePairs);
