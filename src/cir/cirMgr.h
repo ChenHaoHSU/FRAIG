@@ -149,6 +149,8 @@ private:
    void fraig_collectConuterEx(const SatSolver& satSolver, CirModel& model, const unsigned pos);
    void fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs);
    void fraig_refine_fecgrp();
+   void fraig_print_unsat_update_msg() const;
+   void fraig_print_sat_update_msg() const;
 
    // Util functions
    string bitString(size_t s) const;

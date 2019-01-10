@@ -87,28 +87,35 @@ CirMgr::strash()
 void
 CirMgr::fraig()
 {
-   #define UNSAT_MERGE_LIMIT 10000
-
    SatSolver satSolver;
    CirModel model(_nPI);
-   unsigned periodCnt = 0; // SIM_CYCLE, a period
-   unsigned unsatCnt = 0;
+   unsigned periodCnt = 0;
    vector<pair<CirGateV, CirGateV> > vMergePairs;
 
+   // Tuned parameter 'unsat_merge_ratio' and 'unsat_merge_ratio_increment':
+   //    Only when dfs_ratio > unsat_merge_ratio will the merge operation be performed.
+   double unsat_merge_ratio = 0.10;
+   double unsat_merge_ratio_increment = 0.10;
+
    while (!_lFecGrps.empty()) {
+      // Pre-process
       fraig_initSatSolver(satSolver);
       fraig_refine_fecgrp();
       fraig_assignDfsOrder();
       fraig_sortFecGrps_dfsOrder();
       
-      for (unsigned dfsId = 0, n = _vDfsList.size(); dfsId < n; ++dfsId) {
+      for (unsigned dfsId = 0, dfsSize = _vDfsList.size(); dfsId < dfsSize; ++dfsId) {
+         // Current gate
          CirGate* curGate = _vDfsList[dfsId];
 
-         // Skip functionally unique gates
+         // Skip non-AIG gates
          if (!curGate->isAig()) continue;
 
+         // Add curGate to SATsolver
          satSolver.addAigCNF(curGate->var() + 1, curGate->fanin0_var() + 1, curGate->fanin0_inv(), 
                                                  curGate->fanin1_var() + 1, curGate->fanin1_inv());
+
+         // Skip functionally unique gates
          if (curGate->grp() == nullptr) continue;
 
          // Check if rep gate is curGate itself => no need to check
@@ -117,52 +124,55 @@ CirMgr::fraig()
          if (repGate == curGate) continue;
          assert(fecGrp->candGate(curGate->grpIdx()) == curGate);
 
-         // Use SATsolver to prove if repGate and curGate are equivalent
+         // Current gate and representive gate of the corresponding fecgrp
+         // 1. If curGate == repGate (UNSAT), then merge curGate (dead) to repGate(alive)
+         // 2. If curGate != repGate (SAT), then collect the counterexample provided by SATsolver
+         // 
          const CirGateV& repGateV = fecGrp->rep();
          const CirGateV& curGateV = fecGrp->cand(curGate->grpIdx());
          assert(repGateV.gate() != curGateV.gate());
 
+         // Use SATsolver to prove if repGate and curGate are equivalent
          const bool result = fraig_solve(repGateV, curGateV, satSolver);
+         /* 
+          * UNSAT:
+          * repGate and curGate are functionally equivalent 
+         */
+         if (!result) {
+            // Record the merge pair, lazy merge
+            vMergePairs.emplace_back(repGateV, curGateV); // repGateV alive; curGateV dead
+            fecGrp->cand(curGate->grpIdx()) = CirGateV(nullptr);
+            const double current_dfs_ratio = ((double)dfsId) / ((double)dfsSize);
+            if (current_dfs_ratio > unsat_merge_ratio && !vMergePairs.empty()) {
+               fraig_mergeEqGates(vMergePairs);
+               fraig_print_unsat_update_msg();
+               unsat_merge_ratio = std::min(1.00, unsat_merge_ratio + unsat_merge_ratio_increment);
+               break;
+            }
+         }
          /* 
           * SAT:
           * repGate and curGateare are functionally INequivalent 
          */
-         if (result) {
+         else { // result == true
             // Get the SAT asssignments from SATsolver and store the pattern in model
             for (unsigned i = 0, nPI = _vPi.size(); i < nPI; ++i) {
                const int val = satSolver.getValue(_vPi[i]->var() + 1);
-               if (val == 0) {
+               if (val == 0)
                   model.add0(i, periodCnt);
-               }
                else
                   model.add1(i, periodCnt);
             }
-            
-            // Counter goes on
+
+            // Counter moves on
             ++periodCnt;
 
             // Simulate the circuit if SIM_CYCLE(64) patterns are already collected
             if (periodCnt >= SIM_CYCLE) {
                sim_simulation(model);
                sim_linkGrp2Gate();
+               fraig_print_sat_update_msg();
                periodCnt = 0;
-               cout << flush << '\r' << "Updating by SAT... Total #FEC Group = " << _lFecGrps.size() << endl;
-               break;
-            }
-         }
-         /* 
-          * UNSAT:
-          * repGate and curGate are functionally equivalent 
-         */
-         else {
-            // Record the merge pair, lazy merge
-            vMergePairs.emplace_back(repGateV, curGateV); // repGateV alive; curGateV dead
-            fecGrp->cand(curGate->grpIdx()) = CirGateV(nullptr);
-            if (++unsatCnt >= UNSAT_MERGE_LIMIT) {
-               fraig_mergeEqGates(vMergePairs);
-               unsatCnt = 0;
-               cout << flush << '\r' << "Updating by UNSAT... Total #FEC Group = " << _lFecGrps.size() << endl;
-               break;
             }
          }
       }
@@ -170,20 +180,21 @@ CirMgr::fraig()
       buildDfsList();
    }
 
-
-   if (unsatCnt > 0) {
+   // If there are any gates in vMergePairs, just merge them
+   if (!vMergePairs.empty()) {
       fraig_mergeEqGates(vMergePairs);
-      cout << flush << '\r' << "Updating by UNSAT... Total #FEC Group = " << _lFecGrps.size() << endl;
+      fraig_print_unsat_update_msg();
    }
+   // If there are any patterns in model, just simulate the circuit by those patterns
    if (periodCnt > 0) {
       sim_simulation(model);
-      cout << flush << '\r' << "Updating by SAT... Total #FEC Group = " << _lFecGrps.size() << endl;
+      fraig_print_sat_update_msg();
    }
    
    buildDfsList();
    strash();
-   assert(_lFecGrps.empty());
    _bFirstSim = false;
+   assert(_lFecGrps.empty());
 }
 
 /********************************************/
@@ -279,4 +290,14 @@ CirMgr::fraig_refine_fecgrp() {
    for (auto& grp : _lFecGrps)
       grp->refine();
    sim_sweepInvalidFecGrp();
+}
+
+void
+CirMgr::fraig_print_unsat_update_msg() const {
+   cout << flush << '\r' << "Updating by UNSAT... Total #FEC Group = " << _lFecGrps.size() << endl;
+}
+
+void
+CirMgr::fraig_print_sat_update_msg() const {
+   cout << flush << '\r' << "Updating by SAT... Total #FEC Group = " << _lFecGrps.size() << endl;
 }
