@@ -243,10 +243,7 @@ CirMgr::fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver
    satSolver.assumeRelease();
    satSolver.assumeProperty(newV, true);
    satSolver.assumeProperty(fraig_sat_var(constGate()->var()), false);
-   bool result = satSolver.assumpSolve();
-   cout << (result ? "SAT!!" : "UNSAT!!");
-   cout << flush << "\r                                  \r";
-   return result;
+   return satSolver.assumpSolve();
 }
 
 void
@@ -266,13 +263,14 @@ void
 CirMgr::fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
 {
    // pair<CirGateV, CirGateV> : pair<aliveGate, deadGate>
+   bool inv;
+   CirGate *aliveGate, *deadGate;
    for (unsigned i = 0, n = vMergePairs.size(); i < n; ++i) {
-      fprintf(stdout, "Fraig: %u merging %s%u...\n", 
-              vMergePairs[i].first.gate()->var(),
-              (vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv() ? "!" : ""),
-              vMergePairs[i].second.gate()->var());
-      mergeGate(vMergePairs[i].first.gate(), vMergePairs[i].second.gate(),
-                vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv());
+      aliveGate = vMergePairs[i].first.gate();
+      deadGate = vMergePairs[i].second.gate();
+      inv = vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv();
+      fprintf(stdout, "Fraig: %u merging %s%u...\n", aliveGate->var(), (inv ? "!" : ""), deadGate->var());
+      mergeGate(aliveGate, deadGate, inv);
       assert(vMergePairs[i].first.gate()->dfsOrder() < vMergePairs[i].second.gate()->dfsOrder());
    }
    vMergePairs.clear();
@@ -293,6 +291,7 @@ CirMgr::fraig_proving_msg(const CirGateV& g1, const CirGateV& g2)
       fprintf(stdout, "Prove %s%u = 1...", (inv ? "!" : ""), g2.gate()->var());
    else
       fprintf(stdout, "Prove (%u, %s%u)...", g1.gate()->var(), (inv ? "!" : ""), g2.gate()->var());
+   cout << flush << "\r                                  \r";
 }
 
 void
