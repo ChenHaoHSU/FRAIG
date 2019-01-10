@@ -250,11 +250,14 @@ void
 CirMgr::fraig_proveMsg(const CirGateV& g1, const CirGateV& g2)
 {
    const bool inv = g1.isInv() ^ g2.isInv();
-   if(g1.gate() == constGate())
-      cout << flush << '\r' << "Prove " << (inv ? "!" : "") << g2.gate()->var() << " = 1..." ;
-   else
-      cout << flush << '\r' << "Prove (" << g1.gate()->var() << ", " 
-           << (inv ? "!" : "") << g2.gate()->var() << ")...";
+   if(g1.gate() == constGate()) {
+      cout << flush << '\r';
+      fprintf(stdout, "Prove %s%u = 1...", (inv ? "!" : ""), g2.gate()->var());
+   }
+   else {
+      cout << flush << '\r';
+      fprintf(stdout, "Prove (%u, %s%u)...", g1.gate()->var(), (inv ? "!" : ""), g2.gate()->var());
+   }
 }
 
 void
@@ -273,15 +276,16 @@ CirMgr::fraig_collectConuterEx(const SatSolver& satSolver, CirModel& model, cons
 void
 CirMgr::fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
 {
-   // pair<CirGateV, CirGateV> : pair<liveGate, deadGate>
+   // pair<CirGateV, CirGateV> : pair<aliveGate, deadGate>
    cout << flush << '\r';
    for (unsigned i = 0, n = vMergePairs.size(); i < n; ++i) {
-      cout << "Fraig: "<< vMergePairs[i].first.gate()->var() << " merging " 
-           << (vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv() ? "!" : "") 
-           << vMergePairs[i].second.gate()->var() << "..." << endl;
-      assert(vMergePairs[i].first.gate()->dfsOrder() < vMergePairs[i].second.gate()->dfsOrder());
+      fprintf(stdout, "Fraig: %u merging %s%u...\n", 
+              vMergePairs[i].first.gate()->var(),
+              (vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv() ? "!" : ""),
+              vMergePairs[i].second.gate()->var());
       mergeGate(vMergePairs[i].first.gate(), vMergePairs[i].second.gate(),
                 vMergePairs[i].first.isInv() ^ vMergePairs[i].second.isInv());
+      assert(vMergePairs[i].first.gate()->dfsOrder() < vMergePairs[i].second.gate()->dfsOrder());
    }
    vMergePairs.clear();
 }

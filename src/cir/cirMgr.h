@@ -98,10 +98,10 @@ private:
    // Private access functions
    unsigned   nPi()                const { return _nPI; }
    unsigned   nPo()                const { return _nPO; }
-   CirPiGate* pi(const int i)      const { assert(0 <= i && i < (int)_nPI); return (CirPiGate*)_vPi[i];                     }
-   CirPoGate* po(const int i)      const { assert(0 <= i && i < (int)_nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
-   CirPiGate* pi(const unsigned i) const { assert(i < _nPI); return (CirPiGate*)_vPi[i];                     }
-   CirPoGate* po(const unsigned i) const { assert(i < _nPO); return (CirPoGate*)_vAllGates[_maxIdx + i + 1]; }
+   CirPiGate* pi(const int i)      const { assert(0 <= i && i < (int)_nPI); return static_cast<CirPiGate*>(_vPi[i]);                     }
+   CirPoGate* po(const int i)      const { assert(0 <= i && i < (int)_nPO); return static_cast<CirPoGate*>(_vAllGates[_maxIdx + i + 1]); }
+   CirPiGate* pi(const unsigned i) const { assert(i < _nPI); return static_cast<CirPiGate*>(_vPi[i]);                     }
+   CirPoGate* po(const unsigned i) const { assert(i < _nPO); return static_cast<CirPoGate*>(_vAllGates[_maxIdx + i + 1]); }
    CirGate*   constGate()          const { return _vAllGates[0]; } 
 
    // Private functions for parsing AAG file (defined in cirParse.cpp)

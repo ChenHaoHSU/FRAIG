@@ -21,7 +21,7 @@ public:
    CirModel() {}
    CirModel(unsigned n) { 
       _patterns.resize(n, 0); 
-      srand((unsigned)time(NULL)); 
+      srand((unsigned)time(NULL));
    }
    ~CirModel() {}
 

@@ -187,8 +187,7 @@ CirMgr::sim_initClassifyFecGrp()
    // Aig gates
    for (unsigned i = 0, n = _vDfsList.size(); i < n && (g = _vDfsList[i]); ++i) {
       // Skip non-AIG gates
-      if (!g->isAig()) continue
-      ;
+      if (!g->isAig()) continue;
       if (hash.check(CirInitSimValue(g->value()), queryGrp))
          queryGrp->candidates().emplace_back(g, g->value() != queryGrp->repValue());
       else {
@@ -202,8 +201,6 @@ CirMgr::sim_initClassifyFecGrp()
    for (auto iter = hash.begin(); iter != hash.end(); ++iter)
       if ((*iter).second->isValid())
          _lFecGrps.push_front((*iter).second);
-
-   sim_sweepInvalidFecGrp();
 }
 
 void 
@@ -245,7 +242,6 @@ CirMgr::sim_classifyFecGrp()
       for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end(); ++iter2)
          if ((*iter2)->isValid())
             _lFecGrps.push_front(*iter2);
-      
    }
 }
 
@@ -280,14 +276,16 @@ void
 CirMgr::sim_linkGrp2Gate()
 {  
    unsigned i, n;
-   for (i = 0, n = _vAllGates.size(); i < n; ++i) 
+   for (i = 0, n = _vAllGates.size(); i < n; ++i) {
       if (_vAllGates[i])
          _vAllGates[i]->setGrp(nullptr);
-   for (auto& grp : _lFecGrps)
+   }
+   for (auto& grp : _lFecGrps) {
       for (i = 0, n = grp->size(); i < n; ++i) {
          grp->candGate(i)->setGrp(grp);
          grp->candGate(i)->setGrpIdx(i);
       }
+   }
 }
 
 void 
