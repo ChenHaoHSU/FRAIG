@@ -19,3 +19,4 @@ fraig-64
 *.mak
 .vscode/*
 *.miter
+*.pat
