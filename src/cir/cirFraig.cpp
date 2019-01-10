@@ -164,7 +164,8 @@ CirMgr::fraig()
           */
          else { // result == true
             // Collect the assignments in SATsolver, which can separate the pair (curGate, repGate)
-            fraig_collectConuterEx(satSolver, model, periodCnt++);
+            fraig_collect_conuter_example(satSolver, model, periodCnt++);
+
             // Simulate the circuit if SIM_CYCLE(64) patterns are already collected
             if (periodCnt >= SIM_CYCLE) {
                sim_simulation(model);
@@ -183,6 +184,7 @@ CirMgr::fraig()
    //   2. Refine FEC grps
    //   3. Build DFS list
    //   4. If there are any patterns in model, just simulate the circuit by those patterns
+   // 
    fraig_mergeEqGates(vMergePairs);
    fraig_print_unsat_update_msg();
    buildDfsList();
@@ -237,31 +239,18 @@ CirMgr::fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver
    Var newV = satSolver.newVar();
    satSolver.addXorCNF(newV, fraig_sat_var(g1.gate()->var()), g1.isInv(),
                              fraig_sat_var(g2.gate()->var()), g2.isInv());
-   fraig_proveMsg(g1, g2);
+   fraig_proving_msg(g1, g2);
    satSolver.assumeRelease();
    satSolver.assumeProperty(newV, true);
    satSolver.assumeProperty(fraig_sat_var(constGate()->var()), false);
    bool result = satSolver.assumpSolve();
-   cout << (result ? "SAT" : "UNSAT");
+   cout << (result ? "SAT!!" : "UNSAT!!");
+   cout << flush << "\r                                  \r";
    return result;
 }
 
 void
-CirMgr::fraig_proveMsg(const CirGateV& g1, const CirGateV& g2)
-{
-   const bool inv = g1.isInv() ^ g2.isInv();
-   if(g1.gate() == constGate()) {
-      cout << flush << '\r';
-      fprintf(stdout, "Prove %s%u = 1...", (inv ? "!" : ""), g2.gate()->var());
-   }
-   else {
-      cout << flush << '\r';
-      fprintf(stdout, "Prove (%u, %s%u)...", g1.gate()->var(), (inv ? "!" : ""), g2.gate()->var());
-   }
-}
-
-void
-CirMgr::fraig_collectConuterEx(const SatSolver& satSolver, CirModel& model, const unsigned pos)
+CirMgr::fraig_collect_conuter_example(const SatSolver& satSolver, CirModel& model, const unsigned pos)
 {
    for (unsigned i = 0; i < _nPI; ++i) {
       const int val = satSolver.getValue(fraig_sat_var(pi(i)->var()));
@@ -277,7 +266,6 @@ void
 CirMgr::fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
 {
    // pair<CirGateV, CirGateV> : pair<aliveGate, deadGate>
-   cout << flush << '\r';
    for (unsigned i = 0, n = vMergePairs.size(); i < n; ++i) {
       fprintf(stdout, "Fraig: %u merging %s%u...\n", 
               vMergePairs[i].first.gate()->var(),
@@ -298,13 +286,23 @@ CirMgr::fraig_refine_fecgrp() {
 }
 
 void
+CirMgr::fraig_proving_msg(const CirGateV& g1, const CirGateV& g2)
+{
+   const bool inv = g1.isInv() ^ g2.isInv();
+   if(g1.gate() == constGate())
+      fprintf(stdout, "Prove %s%u = 1...", (inv ? "!" : ""), g2.gate()->var());
+   else
+      fprintf(stdout, "Prove (%u, %s%u)...", g1.gate()->var(), (inv ? "!" : ""), g2.gate()->var());
+}
+
+void
 CirMgr::fraig_print_unsat_update_msg() const {
-   cout << flush << '\r' << "Updating by UNSAT... Total #FEC Group = " << _lFecGrps.size() << endl;
+   fprintf(stdout, "Updating by UNSAT... Total #FEC Group = %lu\n", _lFecGrps.size());
 }
 
 void
 CirMgr::fraig_print_sat_update_msg() const {
-   cout << flush << '\r' << "Updating by SAT... Total #FEC Group = " << _lFecGrps.size() << endl;
+   fprintf(stdout, "Updating by SAT... Total #FEC Group = %lu\n", _lFecGrps.size());
 }
 
 unsigned

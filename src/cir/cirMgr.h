@@ -139,16 +139,17 @@ private:
    void sim_sortFecGrps_var();
    void sim_linkGrp2Gate();
    void sim_writeSimLog(const unsigned nPatterns) const;
+   void sim_print_total_fecgrp_msg() const;
 
    // Private functions for cirFraig (defined in cirFraig.cpp)
    void fraig_initSatSolver(SatSolver& satSolver);
    void fraig_assignDfsOrder();
    void fraig_sortFecGrps_dfsOrder();
    bool fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver);
-   void fraig_proveMsg(const CirGateV& g1, const CirGateV& g2);
-   void fraig_collectConuterEx(const SatSolver& satSolver, CirModel& model, const unsigned pos);
+   void fraig_collect_conuter_example(const SatSolver& satSolver, CirModel& model, const unsigned pos);
    void fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs);
    void fraig_refine_fecgrp();
+   void fraig_proving_msg(const CirGateV& g1, const CirGateV& g2);
    void fraig_print_unsat_update_msg() const;
    void fraig_print_sat_update_msg() const;
    unsigned fraig_sat_var(const unsigned gate_var) const;

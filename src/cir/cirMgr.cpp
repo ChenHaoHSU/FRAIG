@@ -438,7 +438,9 @@ CirMgr::mergeGate(CirGate* aliveGate, CirGate* deadGate, bool invMerged = false)
 /**********************************************************/
 /*   class CirMgr member functions for utility            */
 /**********************************************************/
-string CirMgr::bitString(size_t s) const {
+string 
+CirMgr::bitString(size_t s) const
+{
    size_t n = 8 * sizeof(size_t);
    string str(n, 'x');
    for (size_t i = 0, k = 1; i < n; ++i) {

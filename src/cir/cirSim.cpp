@@ -56,7 +56,8 @@ CirMgr::randomSim()
 
       // Write to the output file _simLog
       sim_writeSimLog(SIM_CYCLE);
-      cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
+
+      sim_print_total_fecgrp_msg();
       nPatterns += SIM_CYCLE;
 
       // Update termination info
@@ -67,7 +68,7 @@ CirMgr::randomSim()
    sim_sortFecGrps_var();
    sim_linkGrp2Gate();
 
-   cout << flush << '\r' << nPatterns << " patterns simulated.\n";
+   fprintf(stdout, "%u patterns simulated.\n", nPatterns);
 }
 
 void
@@ -89,7 +90,7 @@ CirMgr::fileSim(ifstream& patternFile)
 
             // Write to the output file _simLog
             sim_writeSimLog(periodCnt);
-            cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
+            sim_print_total_fecgrp_msg();
             nPatterns += periodCnt;
          }
          break;
@@ -111,7 +112,7 @@ CirMgr::fileSim(ifstream& patternFile)
       if (periodCnt == SIM_CYCLE) {
          sim_simulation(model);
          sim_writeSimLog(periodCnt);
-         cout << flush << '\r' << "Total #FEC Group = " << _lFecGrps.size();
+         sim_print_total_fecgrp_msg();
          nPatterns += periodCnt;
          periodCnt = 0;
          model.reset();
@@ -121,7 +122,7 @@ CirMgr::fileSim(ifstream& patternFile)
    sim_sortFecGrps_var();
    sim_linkGrp2Gate();
    
-   cout << flush << '\r' << nPatterns << " patterns simulated.\n";
+   fprintf(stdout, "%u patterns simulated.\n", nPatterns);
 }
 
 /*************************************************/
@@ -301,4 +302,11 @@ CirMgr::sim_writeSimLog(const unsigned nPatterns) const
          *_simLog << po(j)->value(i);
       *_simLog << endl;
    }
+}
+
+void 
+CirMgr::sim_print_total_fecgrp_msg() const
+{
+   cout << "Total #FEC Group = " << _lFecGrps.size();
+   cout << flush << "\r                                  \r";
 }
