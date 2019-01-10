@@ -94,8 +94,8 @@ CirMgr::fraig()
 
    // Tuned parameter 'unsat_merge_ratio' and 'unsat_merge_ratio_increment':
    //    Only when dfs_ratio > unsat_merge_ratio will the merge operation be performed.
-   double unsat_merge_ratio = 0.1;
-   double unsat_merge_ratio_increment = 0.1;
+   double unsat_merge_ratio = 0.2;
+   double unsat_merge_ratio_increment = 0.8;
 
    // When _lFecGrps is NOT empty, use SATsolver to prove gate equivalence in each fecgrp
    while (!_lFecGrps.empty()) {
@@ -143,9 +143,9 @@ CirMgr::fraig()
          // Use SATsolver to prove if repGate and curGate are equivalent
          const bool result = fraig_solve(repGateV, curGateV, satSolver);
          /* 
-          * UNSAT:
-          * repGate and curGate are functionally equivalent 
-         */
+          *  UNSAT:
+          *  repGate and curGate are functionally equivalent 
+          */
          if (!result) {
             // Record the merge pair, lazy merge
             vMergePairs.emplace_back(repGateV, curGateV); // repGateV alive; curGateV dead
@@ -159,10 +159,11 @@ CirMgr::fraig()
             }
          }
          /* 
-          * SAT:
-          * repGate and curGateare are functionally INequivalent 
-         */
+          *  SAT:
+          *  repGate and curGateare are functionally INequivalent 
+          */
          else { // result == true
+            // Collect the assignments in SATsolver, which can separate the pair (curGate, repGate)
             fraig_collectConuterEx(satSolver, model, periodCnt++);
             // Simulate the circuit if SIM_CYCLE(64) patterns are already collected
             if (periodCnt >= SIM_CYCLE) {
@@ -177,20 +178,21 @@ CirMgr::fraig()
       buildDfsList();
    }
 
-   // If there are any gates in vMergePairs, just merge them
-   if (!vMergePairs.empty()) {
-      fraig_mergeEqGates(vMergePairs);
-      fraig_print_unsat_update_msg();
-   }
-   // If there are any patterns in model, just simulate the circuit by those patterns
-   if (periodCnt > 0) {
-      sim_simulation(model);
-      fraig_print_sat_update_msg();
-   }
-   // Clear FEC grps
-   fraig_refine_fecgrp();
-   
+   // Final step
+   //   1. If there are any gates in vMergePairs, just merge them
+   //   2. Refine FEC grps
+   //   3. Build DFS list
+   //   4. If there are any patterns in model, just simulate the circuit by those patterns
+   fraig_mergeEqGates(vMergePairs);
+   fraig_print_unsat_update_msg();
    buildDfsList();
+   fraig_refine_fecgrp();
+   sim_simulation(model);
+   fraig_print_sat_update_msg();
+   
+   // Post-process
+   //   1. Do strash
+   //   2. Reset _bFirstSim
    strash();
    _bFirstSim = false;
    assert(_lFecGrps.empty());
@@ -233,7 +235,7 @@ bool
 CirMgr::fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver)
 {
    Var newV = satSolver.newVar();
-   satSolver.addXorCNF(newV, fraig_sat_var(g1.gate()->var()), g1.isInv(), 
+   satSolver.addXorCNF(newV, fraig_sat_var(g1.gate()->var()), g1.isInv(),
                              fraig_sat_var(g2.gate()->var()), g2.isInv());
    fraig_proveMsg(g1, g2);
    satSolver.assumeRelease();
@@ -259,9 +261,10 @@ void
 CirMgr::fraig_collectConuterEx(const SatSolver& satSolver, CirModel& model, const unsigned pos)
 {
    for (unsigned i = 0; i < _nPI; ++i) {
-      if (satSolver.getValue(pi(i)->var()) == 0)
+      const int val = satSolver.getValue(fraig_sat_var(pi(i)->var()));
+      if (val == 0)
          model.add0(i, pos);
-      else if (satSolver.getValue(pi(i)->var()) == 1)
+      else if (val == 1)
          model.add1(i, pos);
       else assert(false); // should not return -1...
    }
