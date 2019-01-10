@@ -21,7 +21,7 @@ using namespace std;
 class CirStrashS
 {
 public:
-   CirStrashS(CirGate* g = 0) : _gate(g) {}
+   CirStrashS(CirGate* g = nullptr) : _gate(g) {}
    ~CirStrashS() {}
 
    /* Key (Hash Function) */
@@ -57,7 +57,7 @@ private:
 class CirStrashM
 {
 public:
-   CirStrashM(CirGate* g = 0) : _gate(g) {}
+   CirStrashM(CirGate* g = nullptr) : _gate(g) {}
    ~CirStrashM() {}
 
    /* Key (Hash Function) */

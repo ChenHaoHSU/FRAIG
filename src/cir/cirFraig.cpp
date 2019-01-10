@@ -220,7 +220,7 @@ CirMgr::fraig_assignDfsOrder()
 {
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
       if (_vDfsList[i]->isAig())
-         static_cast<CirAigGate*>(_vDfsList[i])->setDfsOrder(i+1);
+         _vDfsList[i]->setDfsOrder(i + 1);
    }
    constGate()->setDfsOrder(0); // important!! No one can merge const gate!!
 }
@@ -228,7 +228,7 @@ CirMgr::fraig_assignDfsOrder()
 void
 CirMgr::fraig_sortFecGrps_dfsOrder()
 {
-   for(auto& grp : _lFecGrps)
+   for(CirFecGrp* grp : _lFecGrps)
       grp->sortDfsOrder();
    sim_linkGrp2Gate();
 }
@@ -278,7 +278,7 @@ CirMgr::fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
 
 void
 CirMgr::fraig_refine_fecgrp() {
-   for (auto& grp : _lFecGrps)
+   for (CirFecGrp* grp : _lFecGrps)
       grp->refine();
    sim_sweepInvalidFecGrp();
 }

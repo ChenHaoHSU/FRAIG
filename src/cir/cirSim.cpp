@@ -142,7 +142,7 @@ CirMgr::sim_checkPattern(const string& patternStr)
       return false;
    }
    // 2. Char check
-   for (unsigned i = 0; i < patternStr.length(); ++i) {
+   for (unsigned i = 0, n = patternStr.length(); i < n; ++i) {
       if (patternStr[i] != '0' && patternStr[i] != '1') {
          fprintf(stderr, "\nError: Pattern(%s) contains a non-0/1 character(\'%c\').\n", 
             patternStr.c_str(), patternStr[i]);
@@ -167,9 +167,9 @@ CirMgr::sim_simulation(const CirModel& model)
    if (!_bFirstSim) {
       sim_initClassifyFecGrp();
       _bFirstSim = true;
-   }
-   else
+   } else {
       sim_classifyFecGrp();
+   }
 }
 
 void 
@@ -223,7 +223,7 @@ CirMgr::sim_classifyFecGrp()
 
       for (i = 0, n = oriGrp->size(); i < n && (g = oriGrp->candGate(i)); ++i) {
 
-         if (oriGrp->candGate(i) == nullptr) continue;
+         if (g == nullptr) continue;
 
          oriValue = g->value();
          value = oriGrp->candInv(i) ? ~oriValue : oriValue;
@@ -264,7 +264,7 @@ CirMgr::sim_sweepInvalidFecGrp()
 void 
 CirMgr::sim_sortFecGrps_var()
 {
-   for (auto& grp : _lFecGrps)
+   for (CirFecGrp* grp : _lFecGrps)
       grp->sort();
 
    _lFecGrps.sort(
@@ -276,13 +276,12 @@ CirMgr::sim_sortFecGrps_var()
 void 
 CirMgr::sim_linkGrp2Gate()
 {  
-   unsigned i, n;
-   for (i = 0, n = _vAllGates.size(); i < n; ++i) {
+   for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i) {
       if (_vAllGates[i])
          _vAllGates[i]->setGrp(nullptr);
    }
-   for (auto& grp : _lFecGrps) {
-      for (i = 0, n = grp->size(); i < n; ++i) {
+   for (CirFecGrp* grp : _lFecGrps) {
+      for (unsigned i = 0, n = grp->size(); i < n; ++i) {
          grp->candGate(i)->setGrp(grp);
          grp->candGate(i)->setGrpIdx(i);
       }

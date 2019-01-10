@@ -265,7 +265,7 @@ CirMgr::printFECPairs() const
 {
    unsigned i, n;
    unsigned cnt = 0;
-   for (auto& grp : _lFecGrps) {
+   for (CirFecGrp* grp : _lFecGrps) {
       assert(grp->isValid());
       cout << "[" << cnt++ << "]";
       for (i = 0, n = grp->size(); i < n; ++i)
@@ -409,7 +409,7 @@ CirMgr::clear()
    _vAllGates.clear();
 
    // Delete FEC groups
-   for (auto& grp : _lFecGrps)
+   for (CirFecGrp* grp : _lFecGrps)
       delete grp;
    _lFecGrps.clear();
 }
