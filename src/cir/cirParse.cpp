@@ -23,7 +23,7 @@ extern int errInt;
 extern CirGate *errGate;
 
 bool 
-CirMgr::parseAag(ifstream& fin)
+CirMgr::parse_aag(ifstream& fin)
 {
    lineNo = 0;
    string aagStr;
@@ -34,12 +34,12 @@ CirMgr::parseAag(ifstream& fin)
    fin >> _nPO;
    fin >> _nAIG;
    ++lineNo;
-   preProcess();
+   parse_preprocess();
    return true;
 }
 
 void  
-CirMgr::preProcess()
+CirMgr::parse_preprocess()
 {
    // Resize _vAllGates, and reserve _vGarbageList
    _vAllGates.resize(1 + _maxIdx + _nPO, nullptr);
@@ -49,7 +49,7 @@ CirMgr::preProcess()
 }
 
 bool 
-CirMgr::parsePi(ifstream& fin)
+CirMgr::parse_pi(ifstream& fin)
 {
    CirPiGate* newPiGate = nullptr;
    unsigned lit = 0;
@@ -63,7 +63,7 @@ CirMgr::parsePi(ifstream& fin)
 }
 
 bool 
-CirMgr::parsePo(ifstream& fin)
+CirMgr::parse_po(ifstream& fin)
 {
    CirPoGate* newPoGate = nullptr;
    CirGate* fanin = nullptr;
@@ -80,7 +80,7 @@ CirMgr::parsePo(ifstream& fin)
 }
 
 bool 
-CirMgr::parseAig(ifstream& fin)
+CirMgr::parse_aig(ifstream& fin)
 {
    unsigned g_lit, f0_lit, f1_lit;
    CirGate *g, *f0, *f1;
@@ -99,7 +99,7 @@ CirMgr::parseAig(ifstream& fin)
 }
 
 bool 
-CirMgr::parseSymbol(ifstream& fin)
+CirMgr::parse_symbol(ifstream& fin)
 {
    string str = "";
    int idx = 0;
@@ -122,7 +122,7 @@ CirMgr::parseSymbol(ifstream& fin)
 }
 
 bool 
-CirMgr::parseComment(ifstream& fin)
+CirMgr::parse_comment(ifstream& fin)
 {
    return true;
 }

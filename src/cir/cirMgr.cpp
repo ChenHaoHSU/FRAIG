@@ -161,13 +161,13 @@ CirMgr::readCircuit(const string& fileName)
    }
 
    // Parse
-   if (!parseAag(fin))    return false;
-   if (!parsePi(fin))     return false;
-   if (!parsePo(fin))     return false;
-   if (!parseAig(fin))    return false;
-   if (!parseSymbol(fin)) return false;
+   if (!parse_aag(fin))    return false;
+   if (!parse_pi(fin))     return false;
+   if (!parse_po(fin))     return false;
+   if (!parse_aig(fin))    return false;
+   if (!parse_symbol(fin)) return false;
 
-   parseComment(fin); // if any
+   parse_comment(fin); // if any
 
    // Build Lists
    buildDfsList();

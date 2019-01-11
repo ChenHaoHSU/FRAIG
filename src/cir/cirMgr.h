@@ -105,13 +105,13 @@ private:
    CirGate*   constGate()          const { return _vAllGates[0]; } 
 
    // Private functions for parsing AAG file (defined in cirParse.cpp)
-   bool parseAag(ifstream& fin);
-   bool parsePi(ifstream& fin);
-   bool parsePo(ifstream& fin);
-   bool parseAig(ifstream& fin);
-   bool parseSymbol(ifstream& fin);
-   bool parseComment(ifstream& fin);
-   void preProcess();
+   bool parse_aag(ifstream& fin);
+   bool parse_pi(ifstream& fin);
+   bool parse_po(ifstream& fin);
+   bool parse_aig(ifstream& fin);
+   bool parse_symbol(ifstream& fin);
+   bool parse_comment(ifstream& fin);
+   void parse_preprocess();
    CirGate* queryGate(const unsigned gid);
 
    // Private functions for building gate lists (defined in cirMgr.cpp)
@@ -143,11 +143,11 @@ private:
 
    // Private functions for cirFraig (defined in cirFraig.cpp)
    void fraig_initSatSolver(SatSolver& satSolver);
-   void fraig_assignDfsOrder();
-   void fraig_sortFecGrps_dfsOrder();
+   void fraig_assign_dfsOrder();
+   void fraig_sort_fecgrps_dfsOrder();
    bool fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver);
    void fraig_collect_conuter_example(const SatSolver& satSolver, CirModel& model, const unsigned pos);
-   void fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs);
+   void fraig_merge_equivalent_gates(vector<pair<CirGateV, CirGateV> >& vMergePairs);
    void fraig_refine_fecgrp();
    void fraig_proving_msg(const CirGateV& g1, const CirGateV& g2);
    void fraig_print_unsat_update_msg() const;

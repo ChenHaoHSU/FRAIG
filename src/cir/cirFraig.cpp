@@ -107,8 +107,8 @@ CirMgr::fraig()
       //
       fraig_initSatSolver(satSolver);
       fraig_refine_fecgrp();
-      fraig_assignDfsOrder();
-      fraig_sortFecGrps_dfsOrder();
+      fraig_assign_dfsOrder();
+      fraig_sort_fecgrps_dfsOrder();
       
       // Iterate the dfsList (from PI to PO)
       for (unsigned dfsId = 0, dfsSize = _vDfsList.size(); dfsId < dfsSize; ++dfsId) {
@@ -152,7 +152,7 @@ CirMgr::fraig()
             fecGrp->lazy_delete(curGate->grpIdx());
             const double current_dfs_ratio = ((double)dfsId) / ((double)dfsSize);
             if (current_dfs_ratio > unsat_merge_ratio && !vMergePairs.empty()) {
-               fraig_mergeEqGates(vMergePairs);
+               fraig_merge_equivalent_gates(vMergePairs);
                fraig_print_unsat_update_msg();
                unsat_merge_ratio = std::min(1.00, unsat_merge_ratio + unsat_merge_ratio_increment);
                break;
@@ -185,7 +185,7 @@ CirMgr::fraig()
    //   3. Build DFS list
    //   4. If there are any patterns in model, just simulate the circuit by those patterns
    // 
-   fraig_mergeEqGates(vMergePairs);
+   fraig_merge_equivalent_gates(vMergePairs);
    fraig_print_unsat_update_msg();
    buildDfsList();
    fraig_refine_fecgrp();
@@ -216,7 +216,7 @@ CirMgr::fraig_initSatSolver(SatSolver& satSolver)
 }
 
 void
-CirMgr::fraig_assignDfsOrder()
+CirMgr::fraig_assign_dfsOrder()
 {
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
       if (_vDfsList[i]->isAig())
@@ -226,7 +226,7 @@ CirMgr::fraig_assignDfsOrder()
 }
 
 void
-CirMgr::fraig_sortFecGrps_dfsOrder()
+CirMgr::fraig_sort_fecgrps_dfsOrder()
 {
    for(CirFecGrp* grp : _lFecGrps)
       grp->sortDfsOrder();
@@ -260,7 +260,7 @@ CirMgr::fraig_collect_conuter_example(const SatSolver& satSolver, CirModel& mode
 }
 
 void
-CirMgr::fraig_mergeEqGates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
+CirMgr::fraig_merge_equivalent_gates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
 {
    // pair<CirGateV, CirGateV> : pair<aliveGate, deadGate>
    bool inv;
