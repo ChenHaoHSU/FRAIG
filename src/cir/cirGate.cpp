@@ -174,7 +174,7 @@ CirGate::replaceFanin(CirGate* newFanin, bool newInv, CirGate* oldFanin)
 bool 
 CirGate::replaceFanout(CirGate* newFanin, bool newInv, CirGate* oldFanin)
 {
-   for (unsigned i = 0; i < _fanouts.size(); ++i) {
+   for (unsigned i = 0, n = _fanouts.size(); i < n; ++i) {
       if (_fanouts[i].gate() == oldFanin) {
          _fanouts[i].setGateV(newFanin, newInv);
          return true;
@@ -186,7 +186,7 @@ CirGate::replaceFanout(CirGate* newFanin, bool newInv, CirGate* oldFanin)
 bool 
 CirGate::rmFanout(CirGate* g)
 {
-   for (unsigned i = 0; i < _fanouts.size(); ++i) {
+   for (unsigned i = 0, n = _fanouts.size(); i < n; ++i) {
       if (_fanouts[i].gate() == g) {
          _fanouts[i] = _fanouts.back();
          _fanouts.pop_back();
