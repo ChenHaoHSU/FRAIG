@@ -75,7 +75,7 @@ CirGate::reportFanout(int level) const
 void
 CirGate::rec_rptFanin(const CirGate* g, bool inv, int level, int nSpace) const
 {
-   if (g == 0) return;
+   if (g == nullptr) return;
    if (level < 0) return;
    for (int i = 0; i < nSpace; ++i) cout << ' ';
    cout << (inv ? "!" : "") << g->getTypeStr() << " " << g->var();
@@ -92,7 +92,7 @@ CirGate::rec_rptFanin(const CirGate* g, bool inv, int level, int nSpace) const
 void
 CirGate::rec_rptFanout(const CirGate* g, bool inv, int level, int nSpace) const 
 {
-   if (g == 0) return;
+   if (g == nullptr) return;
    if (level < 0) return;
    for (int i = 0; i < nSpace; ++i) cout << ' ';
    cout << (inv ? "!" : "") << g->getTypeStr() << " " << g->var();
