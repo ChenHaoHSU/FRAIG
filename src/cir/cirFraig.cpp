@@ -206,13 +206,17 @@ CirMgr::fraig()
 void
 CirMgr::fraig_initSatSolver(SatSolver& satSolver)
 {
-   /* Initialize SAT solver, #var in SAT solver will be the same as _vAllGates 
-      [Note] gate.var <==> SATsolver[gate.var+1]
-         e.g. for gate 5, its variable id is (5+1) in SAT solver
-   */
+   // Initialize SAT solver, the number of var in SAT solver == the number of _vAllGates 
+   // Also, var in Minisat satSolver starts from 1 !!!! 
+   // Thus, gate.var <--> SATsolver[gate.var+1]
+   //        e.g. for gate 5, its variable id is (5+1) in SAT solver
+   //
    satSolver.initialize();
    for (unsigned i = 0, n = _vAllGates.size(); i < n; ++i)
       satSolver.newVar();
+
+   // Constant gate assert property false
+   satSolver.assertProperty(fraig_sat_var(constGate()->var()), false);
 }
 
 void
@@ -242,7 +246,6 @@ CirMgr::fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver
    fraig_proving_msg(g1, g2);
    satSolver.assumeRelease();
    satSolver.assumeProperty(newV, true);
-   satSolver.assumeProperty(fraig_sat_var(constGate()->var()), false);
    return satSolver.assumpSolve();
 }
 
