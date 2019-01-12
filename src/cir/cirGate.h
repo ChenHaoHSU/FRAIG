@@ -139,7 +139,7 @@ public:
    // Fanin Fanout operation
    bool replaceFanin(CirGate* newFanin, bool newInv, CirGate* oldFanin);
    bool replaceFanout(CirGate* newFanin, bool newInv, CirGate* oldFanin);
-   bool rmFanout(CirGate*);
+   bool rmFanout(CirGate* g);
 
    // Value
    virtual void calValue() = 0;
