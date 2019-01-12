@@ -101,13 +101,7 @@ CirMgr::fileSim(ifstream& patternFile)
       if (!sim_checkPattern(patternStr)) break;
 
       // Set pattern value to model
-      for (unsigned i = 0; i < _nPI; ++i) {
-         if (patternStr[i] == '0')
-            model.add0(i, periodCnt);
-         else // patternStr[i] == '1'
-            model.add1(i, periodCnt);
-      }
-      ++periodCnt;
+      model.setPattern(patternStr, periodCnt++);
 
       // Simulate immediately, if 64 patterns are collected.
       if (periodCnt == SIM_CYCLE) {
