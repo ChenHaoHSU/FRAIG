@@ -31,28 +31,45 @@ extern unsigned globalRef;
 void
 CirGate::reportGate() const
 {
+   cout << "================================================================================\n";
    // Information string
-   string infoStr = getTypeStr() + "(" + to_string(_var) + ")";
+   cout << "= " << getTypeStr() << "(" << _var << ")";
    if (isPi()) {
-      if (((CirPiGate*)this)->symbol() != "")
-         infoStr += "\"" + ((CirPiGate*)this)->symbol() + "\"";
+      cout << "\"" << ((CirPiGate*)this)->symbol() << "\"";
    }
    if (isPo()) {
-      if (((CirPoGate*)this)->symbol() != "")
-         infoStr += "\"" + ((CirPoGate*)this)->symbol() + "\"";
+      cout << "\"" << ((CirPoGate*)this)->symbol() << "\"";
    }
-   infoStr += ", line " + to_string(_lineNo);
+   cout << ", line " << _lineNo << endl;
 
    // FEC string
-   string fecStr = "FECs:"   + this->fecStr();
+   cout << "= FECs:";
+   bool inv;
+   const vector<CirGateV>& vCands = _grp->candidates();
+   const CirGateV thisGateV = _grp->cand(_grpIdx);
+   for(auto& gateV : vCands) {
+      if (gateV != thisGateV) {
+         inv = thisGateV.isInv() ^ gateV.isInv();
+         cout << " " << (inv ? "!" : "") << gateV.gate()->var();
+      }
+   }
+   cout << endl;
 
-   // Value string
-   string valStr = "Value: " + this->valueStr();
+   // // Value string
+   // static const unsigned nBit = 64;
+   // static const unsigned nCluster = 8;
+   // cout << "= Value:";
+   // size_t value_copy = _value;
+   // for (unsigned i = 0; i < nBit; ++i) {
+   //    if (!(i % nCluster) && i != 0) cout << "_";
+   //    if (value_copy & (CONST1 << )
+   //       cout << '1';
+   //    else
+   //       cout << '0';
+   //    value_copy >>= 1;
+   // }
+   // cout << endl;
 
-   cout << "================================================================================\n";
-   cout << "= " << infoStr << endl;
-   cout << "= " << fecStr  << endl;
-   cout << "= " << valStr  << endl;
    cout << "================================================================================\n";
 }
 

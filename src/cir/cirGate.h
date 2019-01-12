@@ -169,7 +169,7 @@ class CirPiGate : public CirGate
 {
 public:
    CirPiGate(unsigned l = 0, unsigned v = 0)
-      : CirGate(l, v) {}
+      : CirGate(l, v), _symbol("") {}
    ~CirPiGate() {}
 
    virtual string   getTypeStr()   const { return "PI";    }
@@ -201,7 +201,7 @@ class CirPoGate : public CirGate
 {
 public:
    CirPoGate(unsigned l = 0, unsigned v = 0)
-      : CirGate(l, v) {}
+      : CirGate(l, v), _symbol("") {}
    ~CirPoGate() {}
 
    virtual string   getTypeStr()   const { return "PO";                      }
