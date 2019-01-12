@@ -265,7 +265,7 @@ CirMgr::printFECPairs() const
 {
    unsigned i, n;
    unsigned cnt = 0;
-   for (CirFecGrp* grp : _lFecGrps) {
+   for (const CirFecGrp* grp : _lFecGrps) {
       cout << "[" << cnt++ << "]";
       for (i = 0, n = grp->size(); i < n; ++i)
          cout << (grp->candInv(i) ? " !" : " ") 
