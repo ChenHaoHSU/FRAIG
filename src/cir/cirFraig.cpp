@@ -94,8 +94,8 @@ CirMgr::fraig()
 
    // Tuned parameter 'unsat_merge_ratio' and 'unsat_merge_ratio_increment':
    //    Only when dfs_ratio > unsat_merge_ratio will the merge operation be performed.
-   double unsat_merge_ratio = 0.1;
-   double unsat_merge_ratio_increment = 0.1;
+   double unsat_merge_ratio = 0.3;
+   double unsat_merge_ratio_increment = 0.9;
 
    // When _lFecGrps is NOT empty, use SATsolver to prove gate equivalence in each fecgrp
    while (!_lFecGrps.empty()) {
@@ -153,6 +153,7 @@ CirMgr::fraig()
             const double current_dfs_ratio = ((double)dfsId) / ((double)dfsSize);
             if (current_dfs_ratio > unsat_merge_ratio && !vMergePairs.empty()) {
                fraig_mergeEquivalentGates(vMergePairs);
+               fraig_refineFecGrp();
                fraig_printMsg_update_unsat();
                unsat_merge_ratio = std::min(1.00, unsat_merge_ratio + unsat_merge_ratio_increment);
                break;
@@ -174,10 +175,9 @@ CirMgr::fraig()
                periodCnt = 0;
             }
          }
-      }
-
+      } // end for dfs
       buildDfsList();
-   }
+   } // end while (!_lFecGrps.empty())
 
    // Final step
    //   1. If there are any gates in vMergePairs, just merge them
