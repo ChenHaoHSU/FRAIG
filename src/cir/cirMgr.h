@@ -142,7 +142,7 @@ private:
    void     sim_printMsg_totalFecGrp() const;
 
    // Private functions for cirFraig (defined in cirFraig.cpp)
-   void     fraig_initSatSolver(SatSolver& satSolver);
+   void     fraig_initSatSolver(SatSolver& satSolver) const;
    void     fraig_assignDfsOrder();
    void     fraig_sortFecGrps_dfsOrder();
    bool     fraig_prove(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver);

@@ -206,7 +206,7 @@ CirMgr::fraig()
 /*   Private member functions about fraig   */
 /********************************************/
 void
-CirMgr::fraig_initSatSolver(SatSolver& satSolver)
+CirMgr::fraig_initSatSolver(SatSolver& satSolver) const
 {
    // Initialize SAT solver, the number of var in SAT solver == the number of _vAllGates 
    // Also, var in Minisat satSolver starts from 1 !!!! 
