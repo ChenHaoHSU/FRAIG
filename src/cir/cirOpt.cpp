@@ -67,7 +67,7 @@ CirMgr::sweep()
                fprintf(stdout, "Sweeping: UNDEF(%d) removed...\n", g->var());
                delGate(g);
             }
-            else {} 
+            else {}
          }
       }
    }
@@ -81,7 +81,7 @@ CirMgr::sweep()
    sortAllGateFanout();
 }
 
-// Recursively simplifying from POs; (PIs?????)
+// Recursively simplifying from POs;
 // _dfsList needs to be reconstructed afterwards
 // UNDEF gates may be delete if its fanout becomes empty...
 void

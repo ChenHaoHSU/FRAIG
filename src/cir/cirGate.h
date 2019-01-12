@@ -143,8 +143,6 @@ public:
 
    // Value
    virtual void calValue() = 0;
-   void setPattern1(const unsigned pos)       { _value |=  (CONST1 << pos);      }
-   void setPattern0(const unsigned pos)       { _value &= ~(CONST1 << pos);      }
    size_t value(const unsigned pos)     const { return CONST1 & (_value >> pos); }
 
 private:
@@ -261,7 +259,6 @@ public:
       _value = ( _fanin0.isInv() ? ~(_fanin0.gate()->value()) : _fanin0.gate()->value() ) 
              & ( _fanin1.isInv() ? ~(_fanin1.gate()->value()) : _fanin1.gate()->value() );
    }
-
    
 private:
 };
