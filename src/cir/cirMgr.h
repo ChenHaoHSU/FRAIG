@@ -126,7 +126,7 @@ private:
    void     delGate(CirGate* g);
    void     clear();
    void     sortAllGateFanout();
-   void     mergeGate(CirGate* aliveGate, CirGate* deadGate, bool invMerged);
+   void     mergeGate(CirGate* aliveGate, CirGate* deadGate, bool invMerged = false);
 
    // Private functions for cirSweep and cirOptimize (defined in cirOpt.cpp)
    

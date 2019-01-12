@@ -36,11 +36,11 @@ CirGate::reportGate() const
    // Gate No., symbol, and line No.
    cout << "= " << getTypeStr() << "(" << _var << ")";
    if (isPi()) {
-      if (((CirPiGate*)this)->symbol() != "")
-         cout << "\"" << ((CirPiGate*)this)->symbol() << "\"";
+      if (static_cast<const CirPiGate*>(this)->symbol() != "")
+         cout << "\"" << static_cast<const CirPiGate*>(this)->symbol() << "\"";
    } else if (isPo()) {
-      if (((CirPoGate*)this)->symbol() != "")
-         cout << "\"" << ((CirPoGate*)this)->symbol() << "\"";
+      if (static_cast<const CirPoGate*>(this)->symbol() != "")
+         cout << "\"" << static_cast<const CirPoGate*>(this)->symbol() << "\"";
    } else {}
    cout << ", line " << _lineNo << endl;
 

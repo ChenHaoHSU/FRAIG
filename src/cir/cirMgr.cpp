@@ -417,7 +417,7 @@ CirMgr::clear()
 /*   class CirMgr member functions for merging two gates  */
 /**********************************************************/
 void 
-CirMgr::mergeGate(CirGate* aliveGate, CirGate* deadGate, bool invMerged = false) 
+CirMgr::mergeGate(CirGate* aliveGate, CirGate* deadGate, bool invMerged) 
 {
    // Remove deadGate from deadGate's fanins' fanout
    deadGate->fanin0_gate()->rmFanout(deadGate);
