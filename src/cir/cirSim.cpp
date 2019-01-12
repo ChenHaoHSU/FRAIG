@@ -178,10 +178,12 @@ CirMgr::sim_firstClassifyFecGrp()
    CirGate* g = nullptr;
    CirFecGrp* queryGrp = nullptr;
    HashMap<CirInitSimValue, CirFecGrp*> hash;
+   list<CirFecGrp*> lCandGrp;
    hash.init(getHashSize(_vDfsList.size()));
 
    // Const gate (must be inside whether it is in dfsList or not)
    queryGrp = new CirFecGrp;
+   lCandGrp.push_back(queryGrp);
    queryGrp->candidates().emplace_back(constGate());
    hash.forceInsert(CirInitSimValue(constGate()->value()), queryGrp);
    
@@ -193,15 +195,16 @@ CirMgr::sim_firstClassifyFecGrp()
          queryGrp->candidates().emplace_back(g, g->value() != queryGrp->repValue());
       } else {
          queryGrp = new CirFecGrp;
+         lCandGrp.push_back(queryGrp);
          queryGrp->candidates().emplace_back(g);
          hash.forceInsert(CirInitSimValue(g->value()), queryGrp);
       }
    }
 
    // Collect valid FEc group from hash
-   for (auto iter = hash.begin(); iter != hash.end(); ++iter)
-      if ((*iter).second->isValid())
-         _lFecGrps.push_front((*iter).second);
+   for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end(); ++iter2)
+      if ((*iter2)->isValid())
+         _lFecGrps.push_front(*iter2);
 }
 
 void 
