@@ -104,41 +104,35 @@ CirMgr::optimize()
             // case1
             mergeGate(constGate(), g, false);
             fprintf(stdout, "Simplifying: %u merging %u...\n", constGate()->var(), g->var());
-         }
-         else{
+         } else{
             // case2
             mergeGate(g->fanin1_gate(), g, g->fanin1_inv());
             fprintf(stdout, "Simplifying: %u merging %s%u...\n", 
                g->fanin1_gate()->var(), (g->fanin1_inv() ? "!" : ""), g->var());
          }
-      }
-      else if ( g->fanin1_gate() == constGate() ) {
+      } else if ( g->fanin1_gate() == constGate() ) {
          if ( !g->fanin1_inv() ) { 
             // case1
             mergeGate(constGate(), g, false);
             fprintf(stdout, "Simplifying: %u merging %u...\n", constGate()->var(), g->var());
-         }
-         else{ 
+         } else{ 
             // case2
             mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
             fprintf(stdout, "Simplifying: %u merging %s%u...\n", 
                g->fanin0_gate()->var(), (g->fanin0_inv() ? "!" : ""), g->var());
          }
-      }
-      else if ( g->fanin0_gate() == g->fanin1_gate() ) {
+      } else if ( g->fanin0_gate() == g->fanin1_gate() ) {
          if ( g->fanin0_inv()  == g->fanin1_inv() ) { 
             // case3
             mergeGate(g->fanin0_gate(), g, g->fanin0_inv());
             fprintf(stdout, "Simplifying: %u merging %s%u...\n", 
                g->fanin0_gate()->var(), (g->fanin0_inv() ? "!" : ""), g->var());
-         }
-         else { 
+         } else { 
             // case4
             mergeGate(constGate(), g, false);
             fprintf(stdout, "Simplifying: %u merging %u...\n", constGate()->var(), g->var());
          }
-      }
-      else {} // no optimization
+      } else {} // no optimization
    }
 
    // Update Lists
