@@ -135,7 +135,6 @@ private:
    void     sim_simulation(const CirModel& model);
    void     sim_firstClassifyFecGrp();
    void     sim_classifyFecGrp();
-   void     sim_sweepInvalidFecGrp();
    void     sim_sortFecGrps_var();
    void     sim_linkGrp2Gate();
    void     sim_writeSimLog(const unsigned nPatterns) const;
@@ -149,6 +148,7 @@ private:
    void     fraig_collectConuterExample(const SatSolver& satSolver, CirModel& model, const unsigned pos);
    void     fraig_mergeEquivalentGates(vector<pair<CirGateV, CirGateV> >& vMergePairs);
    void     fraig_refineFecGrp();
+   void     fraig_sweepInvalidFecGrp();
    void     fraig_printMsg_proving(const CirGateV& g1, const CirGateV& g2) const;
    void     fraig_printMsg_update_unsat() const;
    void     fraig_printMsg_update_sat() const;

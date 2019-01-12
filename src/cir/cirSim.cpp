@@ -249,21 +249,6 @@ CirMgr::sim_classifyFecGrp()
    }
 }
 
-void
-CirMgr::sim_sweepInvalidFecGrp()
-{
-   // Remove invalid FEC groups (i.e. size < 2)
-   for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end();) {
-      CirFecGrp* grp = *iter;
-      if (grp->isValid()) ++iter;
-      else {
-         assert(grp->size() == 1);
-         delete *iter;
-         iter = _lFecGrps.erase(iter);
-      }
-   }
-}
-
 void 
 CirMgr::sim_sortFecGrps_var()
 {
