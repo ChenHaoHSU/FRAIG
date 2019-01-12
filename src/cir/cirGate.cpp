@@ -32,43 +32,43 @@ void
 CirGate::reportGate() const
 {
    cout << "================================================================================\n";
-   // Information string
+
+   // Gate No., symbol, and line No.
    cout << "= " << getTypeStr() << "(" << _var << ")";
    if (isPi()) {
-      cout << "\"" << ((CirPiGate*)this)->symbol() << "\"";
-   }
-   if (isPo()) {
-      cout << "\"" << ((CirPoGate*)this)->symbol() << "\"";
-   }
+      if (((CirPiGate*)this)->symbol() != "")
+         cout << "\"" << ((CirPiGate*)this)->symbol() << "\"";
+   } else if (isPo()) {
+      if (((CirPoGate*)this)->symbol() != "")
+         cout << "\"" << ((CirPoGate*)this)->symbol() << "\"";
+   } else {}
    cout << ", line " << _lineNo << endl;
 
-   // FEC string
+   // FEC
    cout << "= FECs:";
-   bool inv;
-   const vector<CirGateV>& vCands = _grp->candidates();
-   const CirGateV thisGateV = _grp->cand(_grpIdx);
-   for(auto& gateV : vCands) {
-      if (gateV != thisGateV) {
-         inv = thisGateV.isInv() ^ gateV.isInv();
-         cout << " " << (inv ? "!" : "") << gateV.gate()->var();
+   if (_grp != nullptr) {
+      bool inv;
+      const vector<CirGateV>& vCands = _grp->candidates();
+      const CirGateV thisGateV = _grp->cand(_grpIdx);
+      for(const CirGateV& gateV : vCands) {
+         if (gateV != thisGateV) {
+            inv = thisGateV.isInv() ^ gateV.isInv();
+            cout << " " << (inv ? "!" : "") << gateV.gate()->var();
+         }
       }
    }
    cout << endl;
 
-   // // Value string
-   // static const unsigned nBit = 64;
-   // static const unsigned nCluster = 8;
-   // cout << "= Value:";
-   // size_t value_copy = _value;
-   // for (unsigned i = 0; i < nBit; ++i) {
-   //    if (!(i % nCluster) && i != 0) cout << "_";
-   //    if (value_copy & (CONST1 << )
-   //       cout << '1';
-   //    else
-   //       cout << '0';
-   //    value_copy >>= 1;
-   // }
-   // cout << endl;
+   // Value
+   static const int nBit = 64;
+   static const int nCluster = 8;
+   cout << "= Value: ";
+   for (int i = nBit - 1; i >= 0; --i) {
+      if (i % nCluster == (nCluster - 1) && i != nBit - 1) 
+         cout << "_";
+      cout << ((_value & (CONST1 << i)) ? '1' : '0');
+   }
+   cout << endl;
 
    cout << "================================================================================\n";
 }
