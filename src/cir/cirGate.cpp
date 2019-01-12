@@ -123,42 +123,6 @@ CirGate::rec_rptFanout(const CirGate* g, bool inv, int level, int nSpace) const
       rec_rptFanout(g->fanout_gate(i), g->fanout_inv(i), level - 1, nSpace + 2);
 }
 
-string 
-CirGate::fecStr() const
-{
-   string str = "";
-   if (_grp != nullptr) {
-      bool inv;
-      const vector<CirGateV>& vCands = _grp->candidates();
-      const CirGateV thisGateV = _grp->cand(_grpIdx);
-      for(auto& gateV : vCands) {
-         if (gateV != thisGateV) {
-            inv = thisGateV.isInv() ^ gateV.isInv();
-            str = str + " " + (inv ? "!" : "") + to_string(gateV.gate()->var());
-         }
-      }
-   }
-   return str;
-}
-
-string 
-CirGate::valueStr() const
-{
-   static const unsigned nBit     = 64;
-   static const unsigned nCluster = 8;
-   string str = "";
-   size_t value_copy = _value;
-   for (unsigned i = 0; i < nBit; ++i) {
-      if (!(i % nCluster) && i != 0) str = "_" + str;
-      if (value_copy & CONST1)
-         str = "1" + str;
-      else
-         str = "0" + str;
-      value_copy >>= 1;
-   }
-   return str;
-}
-
 /**************************************/
 /*   class CirGate sorting functions  */
 /**************************************/

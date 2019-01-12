@@ -135,8 +135,6 @@ public:
    void   reportFanout(int level)                       const;
    void   rec_rptFanin(const CirGate*, bool, int, int)  const;
    void   rec_rptFanout(const CirGate*, bool, int, int) const;
-   string valueStr()                                    const;
-   string fecStr()                                      const;
 
    // Fanin Fanout operation
    bool replaceFanin(CirGate* newFanin, bool newInv, CirGate* oldFanin);

@@ -266,7 +266,6 @@ CirMgr::printFECPairs() const
    unsigned i, n;
    unsigned cnt = 0;
    for (CirFecGrp* grp : _lFecGrps) {
-      assert(grp->isValid());
       cout << "[" << cnt++ << "]";
       for (i = 0, n = grp->size(); i < n; ++i)
          cout << (grp->candInv(i) ? " !" : " ") 
@@ -280,7 +279,7 @@ CirMgr::writeAag(ostream& outfile) const
 {
    unsigned i, n;
    // First line
-   outfile << "aag"   << " " << _maxIdx << " " << _nPI  << " " 
+   outfile << "aag"   << " " << _maxIdx << " " << _nPI     << " " 
            << _nLATCH << " " << _nPO    << " " << _nDfsAIG << endl;
    // PIs
    for (i = 0; i < _nPI; ++i) 

@@ -23,13 +23,12 @@ class CirGate;
 class CirMgr;
 class SatSolver;
 
-
 /**********************************************************/
 /*   Macros                                               */
 /**********************************************************/
-#define VAR(x)     (x / 2)
-#define INV(x)     (x % 2)
-#define LIT(x, y)  ((x * 2) + y)
+#define VAR(x)     (x >> 1)
+#define INV(x)     (x & 0x01)
+#define LIT(x, y)  ((x << 1) + y)
 
 #define BYTE_SIZE  (8)
 #define SIZET_SIZE (sizeof(size_t) * BYTE_SIZE)
@@ -48,8 +47,5 @@ constexpr size_t HALF_SIM_CYCLE   = ((sizeof(size_t) * BYTE_SIZE) / 2);
 /**********************************************************/
 /*   Global enum                                          */
 /**********************************************************/
-
-
-
 
 #endif // CIR_DEF_H
