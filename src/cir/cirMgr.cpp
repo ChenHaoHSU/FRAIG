@@ -421,14 +421,13 @@ void
 CirMgr::mergeGate(CirGate* aliveGate, CirGate* deadGate, bool invMerged = false) 
 {
    // Remove deadGate from deadGate's fanins' fanout
-   assert( deadGate->fanin0_gate()->rmFanout(deadGate) );
-   assert( deadGate->fanin1_gate()->rmFanout(deadGate) );
+   deadGate->fanin0_gate()->rmFanout(deadGate);
+   deadGate->fanin1_gate()->rmFanout(deadGate);
 
    // Replace deadGate's fanouts' fanin with aliveGate,
    // and also add to aliveGate's fanout
    for (unsigned i = 0, n = deadGate->nFanouts(); i < n; ++i) {
-      assert( deadGate->fanout_gate(i)->replaceFanin(aliveGate, 
-         deadGate->fanout_inv(i) ^ invMerged, deadGate) );
+      deadGate->fanout_gate(i)->replaceFanin(aliveGate, deadGate->fanout_inv(i) ^ invMerged, deadGate);
       aliveGate->addFanout(deadGate->fanout_gate(i), deadGate->fanout_inv(i) ^ invMerged);
    }
    // Delete deadGate

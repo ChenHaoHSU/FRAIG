@@ -68,6 +68,7 @@ CirMgr::randomSim()
    sim_sortFecGrps_var();
    sim_linkGrp2Gate();
 
+   cout << flush << "\r";
    fprintf(stdout, "%u patterns simulated.\n", nPatterns);
 }
 
@@ -122,6 +123,7 @@ CirMgr::fileSim(ifstream& patternFile)
    sim_sortFecGrps_var();
    sim_linkGrp2Gate();
    
+   cout << flush << "\r";
    fprintf(stdout, "%u patterns simulated.\n", nPatterns);
 }
 
@@ -205,6 +207,8 @@ CirMgr::sim_firstClassifyFecGrp()
    for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end(); ++iter2)
       if ((*iter2)->isValid())
          _lFecGrps.push_front(*iter2);
+      else
+         delete *iter2;
 }
 
 void 
@@ -246,6 +250,8 @@ CirMgr::sim_classifyFecGrp()
       for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end(); ++iter2)
          if ((*iter2)->isValid())
             _lFecGrps.push_front(*iter2);
+         else
+            delete *iter2;
    }
 }
 
@@ -309,6 +315,6 @@ CirMgr::sim_writeSimLog(const unsigned nPatterns) const
 void 
 CirMgr::sim_printMsg_totalFecGrp() const
 {
+   cout << flush << "\r";
    cout << "Total #FEC Group = " << _lFecGrps.size();
-   cout << flush << "\r                                  \r";
 }
