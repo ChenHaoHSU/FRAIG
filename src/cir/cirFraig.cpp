@@ -99,6 +99,7 @@ CirMgr::fraig()
 
    // When _lFecGrps is NOT empty, use SATsolver to prove gate equivalence in each fecgrp
    while (!_lFecGrps.empty()) {
+
       // Pre-process
       //    1. Initialize satSolver: reset + newVar
       //    2. Refine FEC grps: no nullptr in any fec grp
@@ -141,7 +142,8 @@ CirMgr::fraig()
          assert(repGateV.gate() != curGateV.gate());
 
          // Use SATsolver to prove if repGate and curGate are equivalent
-         const bool result = fraig_solve(repGateV, curGateV, satSolver);
+         const bool result = fraig_prove(repGateV, curGateV, satSolver);
+
          /* 
           *  UNSAT:
           *  repGate and curGate are functionally equivalent 
@@ -238,7 +240,7 @@ CirMgr::fraig_sortFecGrps_dfsOrder()
 }
 
 bool 
-CirMgr::fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver)
+CirMgr::fraig_prove(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver)
 {
    Var newV = satSolver.newVar();
    satSolver.addXorCNF(newV, fraig_sat_var(g1.gate()->var()), g1.isInv(),

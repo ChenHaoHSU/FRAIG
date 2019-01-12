@@ -145,7 +145,7 @@ private:
    void     fraig_initSatSolver(SatSolver& satSolver);
    void     fraig_assignDfsOrder();
    void     fraig_sortFecGrps_dfsOrder();
-   bool     fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver);
+   bool     fraig_prove(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver);
    void     fraig_collectConuterExample(const SatSolver& satSolver, CirModel& model, const unsigned pos);
    void     fraig_mergeEquivalentGates(vector<pair<CirGateV, CirGateV> >& vMergePairs);
    void     fraig_refineFecGrp();
