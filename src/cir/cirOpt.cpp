@@ -42,13 +42,12 @@ CirMgr::sweep()
       // [Note] UNDEF gates never exist in DFS list.
       //        So, make sure that UNDEF gates which 
       //        can be reached by POs will be marked.
-      if (_vDfsList[i]->isPo()) 
+      if (_vDfsList[i]->isPo()) {
          _vDfsList[i]->fanin0_gate()->setRef(globalRef);
-      else if (_vDfsList[i]->isFloating()) { 
+      } else if (_vDfsList[i]->isFloating()) { 
          _vDfsList[i]->fanin0_gate()->setRef(globalRef);
          _vDfsList[i]->fanin1_gate()->setRef(globalRef);
-      }
-      else {}
+      } else {}
    }
 
    // Sweeping unmarked gates
@@ -68,7 +67,10 @@ CirMgr::sweep()
                fprintf(stdout, "Sweeping: UNDEF(%d) removed...\n", g->var());
                delGate(g);
             }
-            else {} }}}
+            else {} 
+         }
+      }
+   }
 
    // Update Lists
    buildFloatingList();
