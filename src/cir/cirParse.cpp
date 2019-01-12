@@ -71,7 +71,7 @@ CirMgr::parse_po(ifstream& fin)
    for (unsigned i = 0; i < _nPO; ++i) {
       fin >> lit;
       newPoGate = new CirPoGate(++lineNo, (_maxIdx + 1 + i));
-      fanin = queryGate(VAR(lit));
+      fanin = parse_queryGate(VAR(lit));
       newPoGate->setFanin0(fanin, INV(lit));
       fanin->addFanout(newPoGate, INV(lit));
       _vAllGates[_maxIdx + 1 + i] = newPoGate;
@@ -86,9 +86,9 @@ CirMgr::parse_aig(ifstream& fin)
    CirGate *g, *f0, *f1;
    for (unsigned i = 0; i < _nAIG; ++i) {
       fin >> g_lit >> f0_lit >> f1_lit;
-      g  = queryGate(VAR(g_lit));
-      f0 = queryGate(VAR(f0_lit));
-      f1 = queryGate(VAR(f1_lit));
+      g  = parse_queryGate(VAR(g_lit));
+      f0 = parse_queryGate(VAR(f0_lit));
+      f1 = parse_queryGate(VAR(f1_lit));
       g->setFanin0(f0, INV(f0_lit));
       g->setFanin1(f1, INV(f1_lit));
       f0->addFanout(g, INV(f0_lit));
@@ -128,7 +128,7 @@ CirMgr::parse_comment(ifstream& fin)
 }
 
 CirGate*
-CirMgr::queryGate(const unsigned gid)
+CirMgr::parse_queryGate(const unsigned gid)
 {
    assert(gid < _vAllGates.size());
    if (_vAllGates[gid] != nullptr) return _vAllGates[gid];

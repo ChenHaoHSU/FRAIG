@@ -105,57 +105,57 @@ private:
    CirGate*   constGate()          const { return _vAllGates[0]; } 
 
    // Private functions for parsing AAG file (defined in cirParse.cpp)
-   bool parse_aag(ifstream& fin);
-   bool parse_pi(ifstream& fin);
-   bool parse_po(ifstream& fin);
-   bool parse_aig(ifstream& fin);
-   bool parse_symbol(ifstream& fin);
-   bool parse_comment(ifstream& fin);
-   void parse_preprocess();
-   CirGate* queryGate(const unsigned gid);
+   bool     parse_aag(ifstream& fin);
+   bool     parse_pi(ifstream& fin);
+   bool     parse_po(ifstream& fin);
+   bool     parse_aig(ifstream& fin);
+   bool     parse_symbol(ifstream& fin);
+   bool     parse_comment(ifstream& fin);
+   void     parse_preprocess();
+   CirGate* parse_queryGate(const unsigned gid);
 
    // Private functions for building gate lists (defined in cirMgr.cpp)
-   void buildDfsList();
-   void buildFloatingList();
-   void buildUnusedList();
-   void buildUndefList();
-   void countAig();
-   void rec_dfs(CirGate* g);
+   void     buildDfsList();
+   void     buildFloatingList();
+   void     buildUnusedList();
+   void     buildUndefList();
+   void     countAig();
+   void     rec_dfs(CirGate* g);
 
    // Private common functions (defined in cirMgr.cpp)
-   void delGate(CirGate* g);
-   void clear();
-   void sortAllGateFanout();
-   void mergeGate(CirGate* aliveGate, CirGate* deadGate, bool invMerged);
+   void     delGate(CirGate* g);
+   void     clear();
+   void     sortAllGateFanout();
+   void     mergeGate(CirGate* aliveGate, CirGate* deadGate, bool invMerged);
 
    // Private functions for cirSweep and cirOptimize (defined in cirOpt.cpp)
    
    // Private functions for cirSimulation (defined in cirSim.cpp)
-   bool sim_checkPattern(const string& patternStr);
-   void sim_simulation(const CirModel& model);
-   void sim_initClassifyFecGrp();
-   void sim_classifyFecGrp();
-   void sim_sweepInvalidFecGrp();
-   void sim_sortFecGrps_var();
-   void sim_linkGrp2Gate();
-   void sim_writeSimLog(const unsigned nPatterns) const;
-   void sim_print_total_fecgrp_msg() const;
+   bool     sim_checkPattern(const string& patternStr);
+   void     sim_simulation(const CirModel& model);
+   void     sim_firstClassifyFecGrp();
+   void     sim_classifyFecGrp();
+   void     sim_sweepInvalidFecGrp();
+   void     sim_sortFecGrps_var();
+   void     sim_linkGrp2Gate();
+   void     sim_writeSimLog(const unsigned nPatterns) const;
+   void     sim_printMsg_totalFecGrp() const;
 
    // Private functions for cirFraig (defined in cirFraig.cpp)
-   void fraig_initSatSolver(SatSolver& satSolver);
-   void fraig_assign_dfsOrder();
-   void fraig_sort_fecgrps_dfsOrder();
-   bool fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver);
-   void fraig_collect_conuter_example(const SatSolver& satSolver, CirModel& model, const unsigned pos);
-   void fraig_merge_equivalent_gates(vector<pair<CirGateV, CirGateV> >& vMergePairs);
-   void fraig_refine_fecgrp();
-   void fraig_proving_msg(const CirGateV& g1, const CirGateV& g2);
-   void fraig_print_unsat_update_msg() const;
-   void fraig_print_sat_update_msg() const;
+   void     fraig_initSatSolver(SatSolver& satSolver);
+   void     fraig_assignDfsOrder();
+   void     fraig_sortFecGrps_dfsOrder();
+   bool     fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver);
+   void     fraig_collectConuterExample(const SatSolver& satSolver, CirModel& model, const unsigned pos);
+   void     fraig_mergeEquivalentGates(vector<pair<CirGateV, CirGateV> >& vMergePairs);
+   void     fraig_refineFecGrp();
+   void     fraig_printMsg_proving(const CirGateV& g1, const CirGateV& g2) const;
+   void     fraig_printMsg_update_unsat() const;
+   void     fraig_printMsg_update_sat() const;
    unsigned fraig_sat_var(const unsigned gate_var) const;
 
    // Util functions (defined in cirMgr.cpp)
-   string bitString(size_t s) const;
+   string   bitString(size_t s) const;
 };
 
 #endif // CIR_MGR_H

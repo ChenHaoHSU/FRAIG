@@ -57,7 +57,7 @@ CirMgr::randomSim()
       // Write to the output file _simLog
       sim_writeSimLog(SIM_CYCLE);
 
-      sim_print_total_fecgrp_msg();
+      sim_printMsg_totalFecGrp();
       nPatterns += SIM_CYCLE;
 
       // Update termination info
@@ -90,7 +90,7 @@ CirMgr::fileSim(ifstream& patternFile)
 
             // Write to the output file _simLog
             sim_writeSimLog(periodCnt);
-            sim_print_total_fecgrp_msg();
+            sim_printMsg_totalFecGrp();
             nPatterns += periodCnt;
          }
          break;
@@ -112,7 +112,7 @@ CirMgr::fileSim(ifstream& patternFile)
       if (periodCnt == SIM_CYCLE) {
          sim_simulation(model);
          sim_writeSimLog(periodCnt);
-         sim_print_total_fecgrp_msg();
+         sim_printMsg_totalFecGrp();
          nPatterns += periodCnt;
          periodCnt = 0;
          model.reset();
@@ -165,7 +165,7 @@ CirMgr::sim_simulation(const CirModel& model)
 
    // Classify gates into FEC groups
    if (!_bFirstSim) {
-      sim_initClassifyFecGrp();
+      sim_firstClassifyFecGrp();
       _bFirstSim = true;
    } else {
       sim_classifyFecGrp();
@@ -173,7 +173,7 @@ CirMgr::sim_simulation(const CirModel& model)
 }
 
 void 
-CirMgr::sim_initClassifyFecGrp()
+CirMgr::sim_firstClassifyFecGrp()
 {
    CirGate* g = nullptr;
    CirFecGrp* queryGrp = nullptr;
@@ -304,7 +304,7 @@ CirMgr::sim_writeSimLog(const unsigned nPatterns) const
 }
 
 void 
-CirMgr::sim_print_total_fecgrp_msg() const
+CirMgr::sim_printMsg_totalFecGrp() const
 {
    cout << "Total #FEC Group = " << _lFecGrps.size();
    cout << flush << "\r                                  \r";

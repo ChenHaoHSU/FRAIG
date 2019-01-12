@@ -106,9 +106,9 @@ CirMgr::fraig()
       //    4. Sort FEC grp: sort by dfsOrder so the first gate can merge every gate in its fec grp
       //
       fraig_initSatSolver(satSolver);
-      fraig_refine_fecgrp();
-      fraig_assign_dfsOrder();
-      fraig_sort_fecgrps_dfsOrder();
+      fraig_refineFecGrp();
+      fraig_assignDfsOrder();
+      fraig_sortFecGrps_dfsOrder();
       
       // Iterate the dfsList (from PI to PO)
       for (unsigned dfsId = 0, dfsSize = _vDfsList.size(); dfsId < dfsSize; ++dfsId) {
@@ -152,8 +152,8 @@ CirMgr::fraig()
             fecGrp->lazy_delete(curGate->grpIdx());
             const double current_dfs_ratio = ((double)dfsId) / ((double)dfsSize);
             if (current_dfs_ratio > unsat_merge_ratio && !vMergePairs.empty()) {
-               fraig_merge_equivalent_gates(vMergePairs);
-               fraig_print_unsat_update_msg();
+               fraig_mergeEquivalentGates(vMergePairs);
+               fraig_printMsg_update_unsat();
                unsat_merge_ratio = std::min(1.00, unsat_merge_ratio + unsat_merge_ratio_increment);
                break;
             }
@@ -164,13 +164,13 @@ CirMgr::fraig()
           */
          else { // result == true
             // Collect the assignments in SATsolver, which can separate the pair (curGate, repGate)
-            fraig_collect_conuter_example(satSolver, model, periodCnt++);
+            fraig_collectConuterExample(satSolver, model, periodCnt++);
 
             // Simulate the circuit if SIM_CYCLE(64) patterns are already collected
             if (periodCnt >= SIM_CYCLE) {
                sim_simulation(model);
                sim_linkGrp2Gate();
-               fraig_print_sat_update_msg();
+               fraig_printMsg_update_sat();
                periodCnt = 0;
             }
          }
@@ -185,12 +185,12 @@ CirMgr::fraig()
    //   3. Build DFS list
    //   4. If there are any patterns in model, just simulate the circuit by those patterns
    // 
-   fraig_merge_equivalent_gates(vMergePairs);
-   fraig_print_unsat_update_msg();
+   fraig_mergeEquivalentGates(vMergePairs);
+   fraig_printMsg_update_unsat();
    buildDfsList();
-   fraig_refine_fecgrp();
+   fraig_refineFecGrp();
    sim_simulation(model);
-   fraig_print_sat_update_msg();
+   fraig_printMsg_update_sat();
    
    // Post-process
    //   1. Do strash
@@ -220,7 +220,7 @@ CirMgr::fraig_initSatSolver(SatSolver& satSolver)
 }
 
 void
-CirMgr::fraig_assign_dfsOrder()
+CirMgr::fraig_assignDfsOrder()
 {
    for (unsigned i = 0, n = _vDfsList.size(); i < n; ++i) {
       if (_vDfsList[i]->isAig())
@@ -230,7 +230,7 @@ CirMgr::fraig_assign_dfsOrder()
 }
 
 void
-CirMgr::fraig_sort_fecgrps_dfsOrder()
+CirMgr::fraig_sortFecGrps_dfsOrder()
 {
    for(CirFecGrp* grp : _lFecGrps)
       grp->sortDfsOrder();
@@ -243,14 +243,14 @@ CirMgr::fraig_solve(const CirGateV& g1, const CirGateV& g2, SatSolver& satSolver
    Var newV = satSolver.newVar();
    satSolver.addXorCNF(newV, fraig_sat_var(g1.gate()->var()), g1.isInv(),
                              fraig_sat_var(g2.gate()->var()), g2.isInv());
-   fraig_proving_msg(g1, g2);
+   fraig_printMsg_proving(g1, g2);
    satSolver.assumeRelease();
    satSolver.assumeProperty(newV, true);
    return satSolver.assumpSolve();
 }
 
 void
-CirMgr::fraig_collect_conuter_example(const SatSolver& satSolver, CirModel& model, const unsigned pos)
+CirMgr::fraig_collectConuterExample(const SatSolver& satSolver, CirModel& model, const unsigned pos)
 {
    for (unsigned i = 0; i < _nPI; ++i) {
       const int val = satSolver.getValue(fraig_sat_var(pi(i)->var()));
@@ -263,7 +263,7 @@ CirMgr::fraig_collect_conuter_example(const SatSolver& satSolver, CirModel& mode
 }
 
 void
-CirMgr::fraig_merge_equivalent_gates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
+CirMgr::fraig_mergeEquivalentGates(vector<pair<CirGateV, CirGateV> >& vMergePairs)
 {
    // pair<CirGateV, CirGateV> : pair<aliveGate, deadGate>
    bool inv;
@@ -280,14 +280,14 @@ CirMgr::fraig_merge_equivalent_gates(vector<pair<CirGateV, CirGateV> >& vMergePa
 }
 
 void
-CirMgr::fraig_refine_fecgrp() {
+CirMgr::fraig_refineFecGrp() {
    for (CirFecGrp* grp : _lFecGrps)
       grp->refine();
    sim_sweepInvalidFecGrp();
 }
 
 void
-CirMgr::fraig_proving_msg(const CirGateV& g1, const CirGateV& g2)
+CirMgr::fraig_printMsg_proving(const CirGateV& g1, const CirGateV& g2) const
 {
    const bool inv = g1.isInv() ^ g2.isInv();
    if(g1.gate() == constGate())
@@ -298,12 +298,12 @@ CirMgr::fraig_proving_msg(const CirGateV& g1, const CirGateV& g2)
 }
 
 void
-CirMgr::fraig_print_unsat_update_msg() const {
+CirMgr::fraig_printMsg_update_unsat() const {
    fprintf(stdout, "Updating by UNSAT... Total #FEC Group = %lu\n", _lFecGrps.size());
 }
 
 void
-CirMgr::fraig_print_sat_update_msg() const {
+CirMgr::fraig_printMsg_update_sat() const {
    fprintf(stdout, "Updating by SAT... Total #FEC Group = %lu\n", _lFecGrps.size());
 }
 
