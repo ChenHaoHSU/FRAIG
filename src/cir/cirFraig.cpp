@@ -296,7 +296,6 @@ CirMgr::fraig_sweepInvalidFecGrp()
       CirFecGrp* grp = *iter;
       if (grp->isValid()) ++iter;
       else {
-         assert(grp->size() == 1);
          delete *iter;
          iter = _lFecGrps.erase(iter);
       }
