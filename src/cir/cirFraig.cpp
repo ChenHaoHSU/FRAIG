@@ -177,9 +177,9 @@ CirMgr::fraig()
                periodCnt = 0;
             }
          }
-      } // end for dfs
+      } // end FOR dfs
       buildDfsList();
-   } // end while (!_lFecGrps.empty())
+   } // end WHILE (!_lFecGrps.empty())
 
    // Final step
    //   1. If there are any gates in vMergePairs, just merge them

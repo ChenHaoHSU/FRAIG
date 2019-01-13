@@ -43,7 +43,7 @@ CirMgr::randomSim()
 
    unsigned nPatterns = 0; // accumulate number of sim patterns
    unsigned nFail = 0; // fail to make #fecGrps change
-   unsigned preNum = 0; // previous #FEC group
+   unsigned nOldGrps = 0; // previous #FEC group
 
    CirModel model(_nPI);
 
@@ -61,15 +61,14 @@ CirMgr::randomSim()
       nPatterns += SIM_CYCLE;
 
       // Update termination info
-      nFail = (preNum == _lFecGrps.size() ? (nFail + 1) : 0);
-      preNum = _lFecGrps.size();
+      nFail = (nOldGrps == _lFecGrps.size() ? (nFail + 1) : 0);
+      nOldGrps = _lFecGrps.size();
    }
 
    sim_sortFecGrps_var();
    sim_linkGrp2Gate();
 
-   cout << flush << "\r";
-   fprintf(stdout, "%u patterns simulated.\n", nPatterns);
+   cout << flush << "\r" << nPatterns << " patterns simulated." << endl;
 }
 
 void
@@ -294,6 +293,5 @@ CirMgr::sim_writeSimLog(const unsigned nPatterns) const
 void 
 CirMgr::sim_printMsg_totalFecGrp() const
 {
-   cout << flush << "\r";
-   cout << "Total #FEC Group = " << _lFecGrps.size();
+   cout << flush << "\rTotal #FEC Group = " << _lFecGrps.size();
 }
