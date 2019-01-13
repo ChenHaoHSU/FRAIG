@@ -116,8 +116,7 @@ CirMgr::fileSim(ifstream& patternFile)
    sim_sortFecGrps_var();
    sim_linkGrp2Gate();
    
-   cout << flush << "\r";
-   fprintf(stdout, "%u patterns simulated.\n", nPatterns);
+   cout << flush << "\r" << nPatterns << " patterns simulated." << endl;
 }
 
 /*************************************************/
