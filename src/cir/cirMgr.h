@@ -121,6 +121,7 @@ private:
    void     buildUndefList();
    void     countAig();
    void     rec_dfs(CirGate* g);
+   void rec_writeGate(CirGate *g, vector<unsigned>& vPiGates, vector<unsigned>& vAigGates) const;
 
    // Private common functions (defined in cirMgr.cpp)
    void     delGate(CirGate* g);

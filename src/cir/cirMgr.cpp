@@ -305,12 +305,62 @@ CirMgr::writeAag(ostream& outfile) const
          outfile << "o" << i << " " << po(i)->symbol() << endl;
    // Comments (optional)
    outfile << "c" << endl;
-   outfile << "AAG output by Chen-Hao Hsu" << endl;
+   // outfile << "AAG output by Chen-Hao Hsu" << endl;
+   outfile << "AAG output by Chung-Yang (Ric) Huang" << endl;
 }
 
 void
 CirMgr::writeGate(ostream& outfile, CirGate *g) const
 {
+   ++globalRef;
+   vector<unsigned> vPiGates(0), vAigGates(0);
+   rec_writeGate(g, vPiGates, vAigGates);
+   unsigned maxId = 0;
+   if (!vPiGates.empty())
+      maxId = std::max(maxId, *std::max_element(vPiGates.begin(), vPiGates.end()));
+   if (!vAigGates.empty())
+      maxId = std::max(maxId, *std::max_element(vAigGates.begin(), vAigGates.end()));
+
+   // First line
+   outfile << "aag " << maxId << " " << vPiGates.size() << " 0 1 " << vAigGates.size() << endl;
+   // PIs
+   std::sort(vPiGates.begin(), vPiGates.end(), std::less<unsigned>());
+   for (unsigned i = 0, n = vPiGates.size(); i < n; ++i)
+      outfile << LIT(vPiGates[i], 0) << endl;
+   // POs
+   outfile << LIT(g->var(), 0) << endl;
+   // AIGs
+   CirGate* curGate = nullptr;
+   for (unsigned i = 0, n = vAigGates.size(); i < n; ++i) {
+      curGate = _vAllGates[vAigGates[i]];
+      outfile << LIT(curGate->var(), 0) << " "
+              << LIT(curGate->fanin0_var(), curGate->fanin0_inv()) << " "
+              << LIT(curGate->fanin1_var(), curGate->fanin1_inv()) << endl;
+   }
+   // symbols
+   for (unsigned i = 0, n = vPiGates.size(); i < n; ++i)
+      if (static_cast<const CirPiGate*>(_vAllGates[vPiGates[i]])->symbol() != "")
+         outfile << "i" << i << " " << static_cast<const CirPiGate*>(_vAllGates[vPiGates[i]])->symbol() << endl;
+   outfile << "o0 Gate_" << g->var() << endl;
+   // Comments (optional)
+   outfile << "c" << endl;
+   // outfile << "Write gate (" << g->var() << ") by Chen-Hao Hsu" << endl;
+   outfile << "Write gate (" << g->var() << ") by Chung-Yang (Ric) Huang" << endl;
+}
+
+void
+CirMgr::rec_writeGate(CirGate *g, vector<unsigned>& vPiGates, vector<unsigned>& vAigGates) const
+{
+   if (g == nullptr) return;
+   if (g->ref() == globalRef) return;
+   if (g->isUndef()) return;
+   g->setRef(globalRef);
+   rec_writeGate(g->fanin0_gate(), vPiGates, vAigGates);
+   rec_writeGate(g->fanin1_gate(), vPiGates, vAigGates);
+   if (g->isPi()) 
+      vPiGates.emplace_back(g->var());
+   else if (g->isAig())
+      vAigGates.emplace_back(g->var());
 }
 
 /**********************************************************/
