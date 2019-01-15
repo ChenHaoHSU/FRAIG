@@ -178,7 +178,7 @@ CirMgr::sim_firstClassifyFecGrp()
    // Const gate (must be inside whether it is in dfsList or not)
    queryGrp = new CirFecGrp;
    flCandGrp.push_front(queryGrp);
-   queryGrp->candidates().emplace_back(constGate());
+   queryGrp->emplace_back(constGate());
    hash.forceInsert(CirInitSimValue(constGate()->value()), queryGrp);
    
    // Aig gates
@@ -186,11 +186,11 @@ CirMgr::sim_firstClassifyFecGrp()
       // Skip non-AIG gates
       if (!g->isAig()) continue;
       if (hash.check(CirInitSimValue(g->value()), queryGrp)) {
-         queryGrp->candidates().emplace_back(g, g->value() != queryGrp->repValue());
+         queryGrp->emplace_back(g, g->value() != queryGrp->repValue());
       } else {
          queryGrp = new CirFecGrp;
          flCandGrp.push_front(queryGrp);
-         queryGrp->candidates().emplace_back(g);
+         queryGrp->emplace_back(g);
          hash.forceInsert(CirInitSimValue(g->value()), queryGrp);
       }
    }
