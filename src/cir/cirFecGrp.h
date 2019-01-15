@@ -56,7 +56,7 @@ public:
    void refine() {
     _candidates.erase(remove_if(
       _candidates.begin(), _candidates.end(),
-      [&](const CirGateV gv){
+      [](const CirGateV gv){
          return gv.gate() == nullptr;
       }), _candidates.end());
    }

@@ -226,10 +226,10 @@ CirMgr::sim_classifyFecGrp()
          value = oriGrp->candInv(i) ? ~oriValue : oriValue;
 
          if (hash.check(CirSimValue(value), queryGrp)) {
-            queryGrp->candidates().emplace_back(g, oriValue != queryGrp->repValue());
+            queryGrp->emplace_back(g, oriValue != queryGrp->repValue());
          } else {
             queryGrp = new CirFecGrp;
-            queryGrp->candidates().emplace_back(g);
+            queryGrp->emplace_back(g);
             hash.forceInsert(CirSimValue(oriValue, oriGrp->candInv(i)), queryGrp);
             flCandGrp.push_front(queryGrp);
          }
