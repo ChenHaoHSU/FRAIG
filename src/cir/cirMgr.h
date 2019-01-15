@@ -15,6 +15,7 @@
 #include <fstream>
 #include <iostream>
 #include <utility>
+#include <forward_list>
 
 #include "cirDef.h"
 #include "cirGate.h"

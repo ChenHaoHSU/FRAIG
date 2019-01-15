@@ -172,12 +172,12 @@ CirMgr::sim_firstClassifyFecGrp()
    CirGate* g = nullptr;
    CirFecGrp* queryGrp = nullptr;
    HashMap<CirInitSimValue, CirFecGrp*> hash;
-   list<CirFecGrp*> lCandGrp;
+   forward_list<CirFecGrp*> flCandGrp;
    hash.init(getHashSize(_vDfsList.size()));
 
    // Const gate (must be inside whether it is in dfsList or not)
    queryGrp = new CirFecGrp;
-   lCandGrp.push_back(queryGrp);
+   flCandGrp.push_front(queryGrp);
    queryGrp->candidates().emplace_back(constGate());
    hash.forceInsert(CirInitSimValue(constGate()->value()), queryGrp);
    
@@ -189,14 +189,14 @@ CirMgr::sim_firstClassifyFecGrp()
          queryGrp->candidates().emplace_back(g, g->value() != queryGrp->repValue());
       } else {
          queryGrp = new CirFecGrp;
-         lCandGrp.push_back(queryGrp);
+         flCandGrp.push_front(queryGrp);
          queryGrp->candidates().emplace_back(g);
          hash.forceInsert(CirInitSimValue(g->value()), queryGrp);
       }
    }
 
    // Collect valid FEc group from hash
-   for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end(); ++iter2)
+   for (auto iter2 = flCandGrp.begin(); iter2 != flCandGrp.end(); ++iter2)
       if ((*iter2)->isValid())
          _lFecGrps.push_front(*iter2);
       else
@@ -208,14 +208,14 @@ CirMgr::sim_classifyFecGrp()
 {
    unsigned i, n;
    size_t value, oriValue;
-   CirGate* g;
+   CirGate *g;
    CirFecGrp *queryGrp, *oriGrp;
-   list<CirFecGrp*> lCandGrp;
+   forward_list<CirFecGrp*> flCandGrp;
    HashMap<CirSimValue, CirFecGrp*> hash;
 
    for (auto iter = _lFecGrps.begin(); iter != _lFecGrps.end(); iter = _lFecGrps.erase(iter)) {
 
-      lCandGrp.clear();
+      flCandGrp.clear();
 
       oriGrp = *iter;
       hash.init(getHashSize(oriGrp->size()));
@@ -231,13 +231,13 @@ CirMgr::sim_classifyFecGrp()
             queryGrp = new CirFecGrp;
             queryGrp->candidates().emplace_back(g);
             hash.forceInsert(CirSimValue(oriValue, oriGrp->candInv(i)), queryGrp);
-            lCandGrp.push_back(queryGrp);
+            flCandGrp.push_front(queryGrp);
          }
       }
       delete *iter;
 
       // Collect valid FEC groups (i.e. size > 1)
-      for (auto iter2 = lCandGrp.begin(); iter2 != lCandGrp.end(); ++iter2)
+      for (auto iter2 = flCandGrp.begin(); iter2 != flCandGrp.end(); ++iter2)
          if ((*iter2)->isValid())
             _lFecGrps.push_front(*iter2);
          else
