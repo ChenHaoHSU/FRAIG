@@ -69,9 +69,10 @@ public:
    bool operator == (const CirStrashM& c) const { 
       if (_gate->fanin0() == c.gate()->fanin0())
          return (_gate->fanin1() == c.gate()->fanin1());
-      if (_gate->fanin0() == c.gate()->fanin1())
+      else if (_gate->fanin0() == c.gate()->fanin1())
          return (_gate->fanin1() == c.gate()->fanin0());
-      return false;
+      else
+         return false;
    }
 
    /* Basic functions */
