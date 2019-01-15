@@ -222,8 +222,6 @@ CirMgr::sim_classifyFecGrp()
 
       for (i = 0, n = oriGrp->size(); i < n && (g = oriGrp->candGate(i)); ++i) {
 
-         if (g == nullptr) continue;
-
          oriValue = g->value();
          value = oriGrp->candInv(i) ? ~oriValue : oriValue;
 
